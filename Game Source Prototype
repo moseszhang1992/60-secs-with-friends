@@ -1,0 +1,176 @@
+package main_game;
+
+import java.util.Scanner;
+
+//Class that will define every item in the game
+//Inventory size will be capped at 6 for the time being
+//List of items: Food, Water, Medicine, Knife, Gun, Ammunition
+class Item
+{
+	String name;
+	int count;
+	
+	//Initializing constructor for the item
+	public Item(String item_name, int item_count)
+	{
+		name = item_name;
+		count = item_count;
+	}
+}
+
+//Class that contains all the resources that a player will see
+//Player can directly affect every value in this class
+class Resources
+{
+	int hunger; 		//Hunger rating for player
+	int hydration; 		//Hydration rating for player
+	int sanity; 		//Sanity rating for player
+	Item[] item_list = new Item[6];	//List of items that the player has
+	
+	public Resources(int hung, int hydr, int san, Item[] list)
+	{
+		hunger = hung;
+		hydration = hydr;
+		sanity = san;
+		
+		//Initializing the player inventory
+		item_list[0] = new Item("Food", 5);
+		item_list[1] = new Item("Water", 5);
+		item_list[2] = new Item("Medicine", 1);
+		item_list[3] = new Item("Knife", 0);
+		item_list[4] = new Item("Gun", 0);
+		item_list[5] = new Item("Ammunition", 0);
+	}
+
+	
+}
+
+//Class that contains the game's global data that is visible to all players
+//Player cannot directly affect these values
+class WorldData
+{
+	int date;
+	int end_date;
+}
+
+public class Game
+{
+	//Method that takes in player data and world data and displays the GUI for the player
+	public static void menuMethod(Resources stats, WorldData data)
+	{
+		Scanner in = new Scanner(System.in);	
+		
+		System.out.println("--Resources--              --Time--");
+		System.out.printf("Satiety: %d/100", stats.hunger);
+		System.out.printf("           Day: %d/%d\n", data.date, data.end_date);
+		System.out.printf("Hydration: %d /100\n", stats.hydration);
+		System.out.println("Sanity: " + stats.sanity + "/100");
+		System.out.println();
+		System.out.println("--Actions--");
+		System.out.println("1. Eat \n2. Drink \n3. Meditate \n4. Forage \n");
+		
+		for(int i = 0; i < 6; i++)
+		{
+			System.out.println(i + 1 + ". " + stats.item_list[i].name + " - " + stats.item_list[i].count);
+		}
+
+		int choice = in.nextInt(); 		//Get player input for choice
+		
+		switch(choice)
+		{
+			case 1: //Choice to eat food. Does not take an action
+				if(confirmInput("eat"))
+				{
+					if(stats.item_list[0].count > 1)
+					{
+						stats.hunger = stats.hunger + 10;
+						stats.item_list[0].count--;
+					}					
+				}
+				break;
+			case 2: //Choice to drink water. Does not take an action
+				if(confirmInput("drink"))
+				{
+					if(stats.item_list[1].count > 1)
+					{
+						stats.hydration = stats.hydration + 10;
+						stats.item_list[1].count--;
+					}
+				}
+				break;
+			case 3: //Choice to meditate. Takes a full action
+				if(confirmInput("meditate"))
+				{
+					stats.sanity = stats.sanity + 5;
+					stats.hunger = stats.hunger - 5;
+					stats.hydration = stats.hydration - 5;
+					data.date ++;
+				}
+				break;
+			case 4: //Choice to forage. Takes a full action
+				if(confirmInput("forage"))
+				{
+					stats.hunger = stats.hunger - 10;
+					stats.hydration = stats.hydration - 10;
+					data.date ++;
+					forageMethod(stats);
+				}
+				break;
+			default:
+		}	
+		return;
+	}
+	
+	//Method that gets called to confirm the user wants to take the action
+	//Put in as a safety measure against misclicks and forces players to be more meaningful in their decisions
+	public static boolean confirmInput(String choice)
+	{
+		int input;
+		Scanner in = new Scanner(System.in);
+		
+		System.out.println("Do you want to " + choice + "? (1 for yes, 2 for no)");
+		input = in.nextInt();
+		
+		if(input == 1)
+		{
+			return true;
+		}
+		else
+		{
+			return false;
+		}
+		
+	}
+	
+	//Method that will be called when a player decides to forage
+	//This decides the items to be obtained or any unique events that may occur to this player
+	//Later implementation of a switch statement with a random number generator to create event for player
+	public static void forageMethod(Resources stats)
+	{
+		stats.item_list[0].count++;
+		stats.item_list[1].count++;
+		
+		System.out.println("1 Food and 1 Water found!");
+		return;
+	}
+	
+	public static void main(String[] args)
+	{
+		// TODO Auto-generated method stub
+		
+		//Initializing all data for game to begin
+		Item[] list = new Item[6];
+		Resources player_stats = new Resources(100, 100, 100, list);
+		WorldData data = new WorldData();
+		data.date = 1;
+		data.end_date = 50;
+		
+		while(data.date < data.end_date)
+		{
+				menuMethod(player_stats, data);
+		}
+		
+		return;
+	}
+
+}
