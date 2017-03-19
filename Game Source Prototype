@@ -75,14 +75,16 @@ public class Game
 		System.out.printf("Hydration: %d /100\n", stats.hydration);
 		System.out.println("Sanity: " + stats.sanity + "/100");
 		System.out.println();
-		System.out.println("--Actions--");
-		System.out.println("1. Eat \n2. Drink \n3. Meditate \n4. Forage \n");
-		
+	
+		System.out.println("--Inventory--");
 		for(int i = 0; i < 6; i++)
 		{
 			System.out.println(i + 1 + ". " + stats.item_list[i].name + " - " + stats.item_list[i].count);
 		}
-
+		
+		System.out.println("--Actions--");
+		System.out.println("1. Eat \n2. Drink \n3. Meditate \n4. Forage \n");
+		
 		int choice = in.nextInt(); 		//Get player input for choice
 		
 		switch(choice)
@@ -90,7 +92,7 @@ public class Game
 			case 1: //Choice to eat food. Does not take an action
 				if(confirmInput("eat"))
 				{
-					if(stats.item_list[0].count > 1) 		//Check if player has food in inventory
+					if(stats.item_list[0].count > 0) 		//Check if player has food in inventory
 					{
 						if(stats.hunger > 90)
 						{
@@ -108,7 +110,7 @@ public class Game
 			case 2: //Choice to drink water. Does not take an action
 				if(confirmInput("drink"))
 				{
-					if(stats.item_list[1].count > 1)
+					if(stats.item_list[1].count > 0)
 					{
 						if(stats.hydration > 90)
 						{
