@@ -1,14 +1,16 @@
 package main_game;
 
-import java.util.Scanner;
+import java.util.*;
 
-//Class that will define every item in the game
-//Inventory size will be capped at 6 for the time being
-//List of items: Food, Water, Medicine, Knife, Gun, Ammunition
+/*Class that will define every item in the game
+ *Inventory size will be capped at 6 for the time being
+ *List of items: Food, Water, Medicine, Knife, Gun, Ammunition
+ *Future Note to self: Make items global objects to call and set them into an array. Also give items ID values for faster searches
+ */
 class Item
 {
-	String name;
-	int count;
+	String name; 		//Name of item
+	int count;			//Number of items the player owns
 	
 	//Initializing constructor for the item
 	public Item(String item_name, int item_count)
@@ -18,16 +20,21 @@ class Item
 	}
 }
 
-//Class that contains all the resources that a player will see
-//Player can directly affect every value in this class
+/*Class that contains all the resources that a player will see
+ *Player can directly affect every value in this class
+ *Current inventory system is set in a way that every players can only have items
+ *From a set list. Will change for future play through but this works for current version
+ */
 class Resources
 {
 	int hunger; 		//Hunger rating for player
 	int hydration; 		//Hydration rating for player
 	int sanity; 		//Sanity rating for player
+	int health;
 	Item[] item_list = new Item[6];	//List of items that the player has
 	
-	public Resources(int hung, int hydr, int san, Item[] list)
+	//Initializes the resources that the player has
+	public Resources(int hung, int hydr, int san, int hp, Item[] list)
 	{
 		hunger = hung;
 		hydration = hydr;
@@ -36,7 +43,7 @@ class Resources
 		//Initializing the player inventory
 		item_list[0] = new Item("Food", 5);
 		item_list[1] = new Item("Water", 5);
-		item_list[2] = new Item("Medicine", 1);
+		item_list[2] = new Item("Medicine", 0);
 		item_list[3] = new Item("Knife", 0);
 		item_list[4] = new Item("Gun", 0);
 		item_list[5] = new Item("Ammunition", 0);
@@ -45,8 +52,10 @@ class Resources
 	
 }
 
-//Class that contains the game's global data that is visible to all players
-//Player cannot directly affect these values
+/*Class that contains the game's global data that is visible to all players
+ *Player cannot directly affect these values
+ * 
+ */
 class WorldData
 {
 	int date;
@@ -81,11 +90,19 @@ public class Game
 			case 1: //Choice to eat food. Does not take an action
 				if(confirmInput("eat"))
 				{
-					if(stats.item_list[0].count > 1)
+					if(stats.item_list[0].count > 1) 		//Check if player has food in inventory
 					{
+						if(stats.hunger > 90)
+						{
+							System.out.println("You are too full to eat");
+						}
 						stats.hunger = stats.hunger + 10;
 						stats.item_list[0].count--;
-					}					
+					}
+					else
+					{
+						System.out.println("You have no food left");
+					}
 				}
 				break;
 			case 2: //Choice to drink water. Does not take an action
@@ -93,8 +110,16 @@ public class Game
 				{
 					if(stats.item_list[1].count > 1)
 					{
+						if(stats.hydration > 90)
+						{
+							System.out.println("You are not thirsty");
+						}
 						stats.hydration = stats.hydration + 10;
 						stats.item_list[1].count--;
+					}
+					else
+					{
+						System.out.println("You have no water left");
 					}
 				}
 				break;
@@ -147,10 +172,124 @@ public class Game
 	//Later implementation of a switch statement with a random number generator to create event for player
 	public static void forageMethod(Resources stats)
 	{
-		stats.item_list[0].count++;
-		stats.item_list[1].count++;
+		long seed = System.currentTimeMillis();
+		Random random_gen = new Random(seed); 		//Setting random seed
+		int event = 0;
 		
-		System.out.println("1 Food and 1 Water found!");
+	
+		
+		event = random_gen.nextInt(100);
+		
+		if(event < 40) 		//Most standard event that gives 1 food and 1 water 
+		{
+			System.out.println("You were moderately successful in your forage session");
+			System.out.println("You gained 1 Food and 1 Water!");
+			stats.item_list[0].count++;
+			stats.item_list[1].count++;
+		}
+		else if(event < 50) 		//Gives 3 water
+		{
+			System.out.println("You found a fresh supply of water");
+			System.out.println("You gained 4 Water!");
+			stats.item_list[1].count = stats.item_list[1].count + 4;
+		}
+		else if(event < 60) 		//Gives 3 food
+		{
+			System.out.println("You managed to forage around for a lot of food");
+			System.out.println("You gained 3 Food!");
+			stats.item_list[0].count = stats.item_list[0].count + 3;
+		}
+		else if(event < 70) 		//Give 2 Food and 2 Water for the cost of 20 life
+		{
+			System.out.println("You found a huge supply of food and water!"
+							 + "It was trapped! But you still manage to make off with the goods");
+			System.out.println("You gained 2 Food and 2 Water! \n  You lost 20 life!");
+			stats.item_list[0].count = stats.item_list[0].count + 2;
+			stats.item_list[1].count = stats.item_list[1].count + 2;
+			stats.health = stats.health - 20;
+		}
+		else if(event < 75) 		//Give player option to search through an abandoned camp. Super high risk/reward option. Add in ways to change odds?
+		{	
+			Scanner in = new Scanner(System.in);
+			int choice = 0;
+			System.out.println("You find an abandoned camp with most of its supplies still there. Whoever was here left in a hurry\n "
+					         + "Something tells you whatever scared them off may still be around. Do you take the time to scavanege the camp?\n"
+					         + "1 for yes 2 for no");
+			
+			choice = in.nextInt();
+			
+			if(choice == 1) 		//If player decides to raid the camp
+			{
+				event = random_gen.nextInt(100);
+				
+				if(event < 75) 		//Case of failure. Lose 50 life. May add in losing weapons or other supplies.
+				{
+					System.out.println("You were attacked! Limping, you leave in a panic and make off with your life \n");
+					System.out.println("You lose 50 life!");
+					stats.health = stats.health - 50;
+					
+					event = random_gen.nextInt(100);
+					
+					if(event < 50) 		//Player makes it back home
+					{
+						System.out.println("You barely made it back to camp");
+					}
+					else if(event < 75) 		//Player gets a little food
+					{
+						System.out.println("On the way back you find a freshy killed animal with most the meat in tact");
+						System.out.println("You got 1 Food!");
+						stats.item_list[0].count++;
+					}
+					else
+					{
+						System.out.println("On the way back you stop by a small stream of fresh water to get some rest");
+						System.out.println("You got 1 Water!");
+						stats.item_list[1].count++;
+						
+					}
+				}
+				else
+				{
+					System.out.println("What great fortune! You managed to scour the whole camp for lots of supplies!");
+					event = random_gen.nextInt(100);
+					
+					if(event > 50) 		//More medicine
+					{
+						System.out.println("This camp was well stocked with food, water, and medicine! You also come across some weapons.");
+						System.out.println("You find 4 Food, 3 Water, 3 Medicine, 1 Knife, and 5 Ammunition!");
+						stats.item_list[0].count = stats.item_list[0].count + 4;
+						stats.item_list[1].count = stats.item_list[1].count + 3;
+						stats.item_list[2].count = stats.item_list[2].count + 3;
+						stats.item_list[3].count = stats.item_list[3].count + 1;
+						stats.item_list[5].count = stats.item_list[5].count + 5;
+					}
+					else 		//More weapons
+					{
+						System.out.println("This camp was well stocked with food, water, and plenty of weapons! You also find some basic first aid");
+						System.out.println("You find 3 Food, 4 Water, 1 Medicine, 2 Knives, 1 Gun, and 15 Ammuntion!");
+						stats.item_list[0].count = stats.item_list[0].count + 4;
+						stats.item_list[1].count = stats.item_list[1].count + 3;
+						stats.item_list[2].count = stats.item_list[2].count + 3;
+						stats.item_list[3].count = stats.item_list[3].count + 2;
+						stats.item_list[4].count = stats.item_list[4].count + 1;
+						stats.item_list[5].count = stats.item_list[5].count + 15;
+					}
+				}
+			}
+		}
+		else if(event < 80) 		//Nothing happened event
+		{
+			System.out.println("You found nothing on this foraging session");
+		}
+		else if(event < 90)
+		{
+			System.out.println("Placeholder for Bandit event");
+		}
+		else
+		{
+			System.out.println("Placeholder for Merchant event");
+		}
+		
 		return;
 	}
 	
@@ -160,7 +299,7 @@ public class Game
 		
 		//Initializing all data for game to begin
 		Item[] list = new Item[6];
-		Resources player_stats = new Resources(100, 100, 100, list);
+		Resources player_stats = new Resources(100, 100, 100, 100, list);
 		WorldData data = new WorldData();
 		data.date = 1;
 		data.end_date = 50;
