@@ -1,6 +1,11 @@
 package main_game;
 
 import java.util.*;
+import java.awt.*; 			//For adding fonts, color, and graphics to frames
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+
+import javax.swing.*; 		//For frames and buttons and such
 
 /*Class that will define every item in the game
  *Inventory size will be capped at 6 for the time being
@@ -54,7 +59,7 @@ class Resources
 
 /*Class that contains the game's global data that is visible to all players
  *Player cannot directly affect these values
- * 
+ *Will also determine when the game ends and when scripted events happen
  */
 class WorldData
 {
@@ -62,117 +67,173 @@ class WorldData
 	int end_date;
 }
 
-public class Game
+
+
+public class Game extends JFrame implements ActionListener
 {
-	//Method that takes in player data and world data and displays the GUI for the player
-	public static void menuMethod(Resources stats, WorldData data)
-	{
-		Scanner in = new Scanner(System.in);	
-		
-		System.out.println("--Resources--              --Time--");
-		System.out.printf("Satiety: %d/100", stats.hunger);
-		System.out.printf("           Day: %d/%d\n", data.date, data.end_date);
-		System.out.printf("Hydration: %d /100\n", stats.hydration);
-		System.out.println("Sanity: " + stats.sanity + "/100");
-		System.out.println();
+	final int GAME_WIDTH = 1000; 		//Width of game frame
+	final int GAME_LENGTH = 700;		//Length of game frame
+	Resources player_data; 			//Object that holds all the data the player can manipulate or has direct access to
+	WorldData global_data;			//Object that holds all the global variable data. Date, end date, etc.
+	Font header_font;				//Holds the font style for any headings
+	Font menu_font;					//Holds the font style for all the menu buttons
+	Font text_font;					//Holds the font for any text that appears on screen
+	JPanel text_panel = new JPanel(); 				//Holds the text boxes the game has. Here because I need to add and remove this whenever I want
+	JTextArea text = new JTextArea(); 			//Holds the text to put into the text. Here because I need to add and remove this whenever I want
 	
-		System.out.println("--Inventory--");
-		for(int i = 0; i < 6; i++)
+	/*Class constructor that displays the GUI for the player
+	 *Shows menu options and make it interactable to show inventory or menu options
+	 *This will be the main game frame that will be used
+	 */
+	public Game(Resources stats, WorldData data) 
+	{
+		player_data = stats; 			//Constructor variable for player data
+		global_data = data;			//Constructor variable for global data
+		header_font = new Font("Helvetica", Font.BOLD, 25); 		//Style to use for headings of menus or titles
+		menu_font = new Font("Helvetica", Font.PLAIN, 20);			//Style to use for menu options
+		text_font = new Font("Helvetica", Font.PLAIN, 18);
+		
+		//Initializing the Frame for the game
+		setSize(GAME_WIDTH, GAME_LENGTH); 		//Set size of frame
+		setTitle("60 Seconds With Friends: WIP"); 		//Header of frame
+		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); 		//Exits program when frame is closed
+		setResizable(false); 		//so player can't resize the frame
+		setLayout(new GridBagLayout());
+		
+		//Initializing buttons that will make up the menu
+		JButton eat_button = new JButton("Eat");
+		JButton drink_button = new JButton("Drink");
+		JButton meditate_button = new JButton("Meditate");
+		JButton forage_button = new JButton("Forage");
+		JButton inventory_button = new JButton("Inventory");
+		
+		//Setting each button to an ActionListener. This calls actionPerformed method and sends it the button text while retaining the game class
+		eat_button.addActionListener(this);
+		drink_button.addActionListener(this);
+		meditate_button.addActionListener(this);
+		forage_button.addActionListener(this);
+		inventory_button.addActionListener(this);
+		
+		//Adding each button to the main game frame
+		add(eat_button);
+		add(drink_button);
+		add(meditate_button);
+		add(forage_button);
+		add(inventory_button);	
+	}
+
+	/*Main called method for every time a button gets pressed in the Game class which calls the main GUI
+	 *Responsible for handling the 5 basic actions: eat, drink, meditate, forage, and check inventory
+	 */
+	@Override
+	public void actionPerformed(ActionEvent e)
+	{
+		// TODO Auto-generated method stub	
+		String choice = e.getActionCommand();
+		if(choice.equals("Eat"))
 		{
-			System.out.println(i + 1 + ". " + stats.item_list[i].name + " - " + stats.item_list[i].count);
+			if(this.player_data.item_list[0].count > 0) 		//Check if player has food in inventory
+			{
+				if(this.player_data.hunger > 90) 			//Check if player is full or not
+				{
+					this.displayText("You are too full to eat",200 ,150);
+				}
+				else 		//Player eats food
+				{
+					this.displayText("You eat some food",0 , 0);
+					this.player_data.hunger = this.player_data.hunger + 10;
+					this.player_data.item_list[0].count--;
+				}
+			}
+			else
+			{
+				this.displayText("You have no food left",0,0);
+			}	
 		}
-		
-		System.out.println("--Actions--");
-		System.out.println("1. Eat \n2. Drink \n3. Meditate \n4. Forage \n");
-		
-		int choice = in.nextInt(); 		//Get player input for choice
-		
-		switch(choice)
+		else if(choice.equals("Drink"))
 		{
-			case 1: //Choice to eat food. Does not take an action
-				if(confirmInput("eat"))
+			if(this.player_data.item_list[1].count > 0) 		//Check if player has water
+			{ 
+				if(this.player_data.hydration > 90) 			//Check if player is thirsty or not
 				{
-					if(stats.item_list[0].count > 0) 		//Check if player has food in inventory
-					{
-						if(stats.hunger > 90)
-						{
-							System.out.println("You are too full to eat");
-						}
-						stats.hunger = stats.hunger + 10;
-						stats.item_list[0].count--;
-					}
-					else
-					{
-						System.out.println("You have no food left");
-					}
+					this.displayText("You are not thirsty",0,0);
 				}
-				break;
-			case 2: //Choice to drink water. Does not take an action
-				if(confirmInput("drink"))
+				else 		//Player drinks water
 				{
-					if(stats.item_list[1].count > 0)
-					{
-						if(stats.hydration > 90)
-						{
-							System.out.println("You are not thirsty");
-						}
-						stats.hydration = stats.hydration + 10;
-						stats.item_list[1].count--;
-					}
-					else
-					{
-						System.out.println("You have no water left");
-					}
+					this.displayText("You drink some water",0, 0);
+					this.player_data.hydration = this.player_data.hydration + 10;
+					this.player_data.item_list[1].count--;
 				}
-				break;
-			case 3: //Choice to meditate. Takes a full action
-				if(confirmInput("meditate"))
-				{
-					stats.sanity = stats.sanity + 5;
-					stats.hunger = stats.hunger - 5;
-					stats.hydration = stats.hydration - 5;
-					data.date ++;
-				}
-				break;
-			case 4: //Choice to forage. Takes a full action
-				if(confirmInput("forage"))
-				{
-					stats.hunger = stats.hunger - 10;
-					stats.hydration = stats.hydration - 10;
-					data.date ++;
-					forageMethod(stats);
-				}
-				break;
-			default:
-		}	
-		return;
+			
+			}
+			else
+			{
+				this.displayText("You have no water left",0,0);
+			}
+		}
+		else if(choice.equals("Meditate"))
+		{
+			this.displayText("You meditated", 0, 0);
+			this.player_data.sanity = this.player_data.sanity + 5;
+			this.player_data.hunger = this.player_data.hunger - 5;
+			this.player_data.hydration = this.player_data.hydration - 5;
+			this.global_data.date ++;
+		}
+		else if(choice.equals("Forage"))
+		{
+			this.player_data.hunger = this.player_data.hunger - 10;
+			this.player_data.hydration = this.player_data.hydration - 10;
+			this.global_data.date ++;
+			this.forageMethod();
+		}
+		else if(choice.equals("Inventory"))
+		{
+			String inventory_data; 		//Holds item name
+			String inv_count; 			//Holds item count
+			String inventory = "";
+			
+			//Loops through all available items in the player inventory
+			for(int i = 0; i < 6; i++)
+			{
+				inventory_data = this.player_data.item_list[i].name; 		//Sets the name of item
+				inv_count = Integer.toString(this.player_data.item_list[i].count); 		//Convert the count of item into a string
+				inventory_data = inventory_data + " - " + inv_count + "\n"; 		//Add strings together, format, then end with return character
+				inventory = inventory + inventory_data;
+			}
+			this.displayText(inventory, 0, 0);
+		}
 	}
 	
-	//Method that gets called to confirm the user wants to take the action
-	//Put in as a safety measure against misclicks and forces players to be more meaningful in their decisions
-	public static boolean confirmInput(String choice)
+	/*Method that takes in a string from the source code and outputs into the frame
+	 *This will be called every time a text needs to appear on the screen
+	 *Future parameters to add is location integers to change where the text appears
+	 */
+	public void displayText(String display, int x_coordinate, int y_coordinate)
 	{
-		int input;
-		Scanner in = new Scanner(System.in);
+		//Removing the old panel and updating the current frame
+		this.remove(this.text_panel);
+		this.remove(this.text);
+		this.validate();
+		this.repaint();
 		
-		System.out.println("Do you want to " + choice + "? (1 for yes, 2 for no)");
-		input = in.nextInt();
+		//Initialize new text panel and label
+		this.text_panel = new JPanel();
+		this.text = new JTextArea(display);
 		
-		if(input == 1)
-		{
-			return true;
-		}
-		else
-		{
-			return false;
-		}
-		
+		text.setFont(text_font); 		//Setting font of text
+		this.text_panel.add(text); 		//Add the text to the panel
+		this.add(this.text_panel);		//Adding text panel to the main frame
+		this.text_panel.setLocation(x_coordinate, y_coordinate); 		//Supposed to set the text panel at a certain location.
+		this.setVisible(true); 			//Let the text be visible
+		this.validate(); 		//Update the frame to show the current panel state
+		this.repaint();
 	}
 	
-	//Method that will be called when a player decides to forage
-	//This decides the items to be obtained or any unique events that may occur to this player
-	//Later implementation of a switch statement with a random number generator to create event for player
-	public static void forageMethod(Resources stats)
+	/*Method that will handle the foraging call
+	 *Has set list of scripted events that will occur randomly
+	 *Called directly from the main game frame
+	 */
+	public void forageMethod()
 	{
 		long seed = System.currentTimeMillis();
 		Random random_gen = new Random(seed); 		//Setting random seed
@@ -184,41 +245,42 @@ public class Game
 		
 		if(event < 40) 		//Most standard event that gives 1 food and 1 water 
 		{
-			System.out.println("You were moderately successful in your forage session");
-			System.out.println("You gained 1 Food and 1 Water!");
-			stats.item_list[0].count++;
-			stats.item_list[1].count++;
+			this.displayText("You were moderately successful in your forage session\n"
+					+ "You gained 1 Food and 1 Water!",0,0);
+			this.displayText("You gained 1 Food and 1 Water!", 0, 0);
+			this.player_data.item_list[0].count++;
+			this.player_data.item_list[1].count++;
 		}
 		else if(event < 50) 		//Gives 3 water
 		{
-			System.out.println("You found a fresh supply of water");
-			System.out.println("You gained 4 Water!");
-			stats.item_list[1].count = stats.item_list[1].count + 4;
+			this.displayText("You found a fresh supply of water\n"
+					+ "You gained 4 Water!", 0, 0);
+			this.player_data.item_list[1].count = this.player_data.item_list[1].count + 4;
 		}
 		else if(event < 60) 		//Gives 3 food
 		{
-			System.out.println("You managed to forage around for a lot of food");
-			System.out.println("You gained 3 Food!");
-			stats.item_list[0].count = stats.item_list[0].count + 3;
+			this.displayText("You managed to forage around for a lot of food\n"
+					+ "You gained 3 Food!", 0, 0);
+			this.player_data.item_list[0].count = this.player_data.item_list[0].count + 3;
 		}
 		else if(event < 70) 		//Give 2 Food and 2 Water for the cost of 20 life
 		{
-			System.out.println("You found a huge supply of food and water!"
-							 + "It was trapped! But you still manage to make off with the goods");
-			System.out.println("You gained 2 Food and 2 Water! \n  You lost 20 life!");
-			stats.item_list[0].count = stats.item_list[0].count + 2;
-			stats.item_list[1].count = stats.item_list[1].count + 2;
-			stats.health = stats.health - 20;
+			this.displayText("You found a huge supply of food and water!"
+							 + "It was trapped! But you still manage to make off with the goods\n"
+							 + "You gained 2 Food and 2 Water! \n  You lost 20 life!", 0, 0);
+			this.player_data.item_list[0].count = this.player_data.item_list[0].count + 2;
+			this.player_data.item_list[1].count = this.player_data.item_list[1].count + 2;
+			this.player_data.health = this.player_data.health - 20;
 		}
 		else if(event < 75) 		//Give player option to search through an abandoned camp. Super high risk/reward option. Add in ways to change odds?
 		{	
-			Scanner in = new Scanner(System.in);
 			int choice = 0;
-			System.out.println("You find an abandoned camp with most of its supplies still there. Whoever was here left in a hurry\n "
+			this.displayText("You find an abandoned camp with most of its supplies still there. Whoever was here left in a hurry\n "
 					         + "Something tells you whatever scared them off may still be around. Do you take the time to scavanege the camp?\n"
-					         + "1 for yes 2 for no");
+					         + "1 for yes 2 for no", 0, 0);
 			
-			choice = in.nextInt();
+			//Create a new pop up text box for this event
+			//Will implement later
 			
 			if(choice == 1) 		//If player decides to raid the camp
 			{
@@ -226,71 +288,96 @@ public class Game
 				
 				if(event < 75) 		//Case of failure. Lose 50 life. May add in losing weapons or other supplies.
 				{
-					System.out.println("You were attacked! Limping, you leave in a panic and make off with your life \n");
-					System.out.println("You lose 50 life!");
-					stats.health = stats.health - 50;
+					this.displayText("You were attacked! Limping, you leave in a panic and make off with your life \n"
+							+ "You lose 50 life!", 0, 0);
+					this.player_data.health = this.player_data.health - 50;
 					
 					event = random_gen.nextInt(100);
 					
 					if(event < 50) 		//Player makes it back home
 					{
-						System.out.println("You barely made it back to camp");
+						this.displayText("You barely made it back to camp", 0, 0);
 					}
 					else if(event < 75) 		//Player gets a little food
 					{
-						System.out.println("On the way back you find a freshy killed animal with most the meat in tact");
-						System.out.println("You got 1 Food!");
-						stats.item_list[0].count++;
+						this.displayText("On the way back you find a freshy killed animal with most the meat in tact\n"
+								+ "You got 1 Food!", 0, 0);
+						this.player_data.item_list[0].count++;
 					}
-					else
+					else 				//Player finds a little water
 					{
-						System.out.println("On the way back you stop by a small stream of fresh water to get some rest");
-						System.out.println("You got 1 Water!");
-						stats.item_list[1].count++;
+						this.displayText("On the way back you stop by a small stream of fresh water to get some rest\n"
+								+ "You got 1 Water!", 0, 0);
+						this.player_data.item_list[1].count++;
 						
 					}
 				}
 				else
 				{
-					System.out.println("What great fortune! You managed to scour the whole camp for lots of supplies!");
 					event = random_gen.nextInt(100);
 					
 					if(event > 50) 		//More medicine
 					{
-						System.out.println("This camp was well stocked with food, water, and medicine! You also come across some weapons.");
-						System.out.println("You find 4 Food, 3 Water, 3 Medicine, 1 Knife, and 5 Ammunition!");
-						stats.item_list[0].count = stats.item_list[0].count + 4;
-						stats.item_list[1].count = stats.item_list[1].count + 3;
-						stats.item_list[2].count = stats.item_list[2].count + 3;
-						stats.item_list[3].count = stats.item_list[3].count + 1;
-						stats.item_list[5].count = stats.item_list[5].count + 5;
+						this.displayText("What great fortune! You managed to scour the whole camp for lots of supplies!\n"
+								+ "This camp was well stocked with food, water, and medicine! You also come across some weapons\n"
+								+ "You found 4 Food, 3 Water, 3 Medicine, 1 Knife, and 5 Ammunition!", 0, 0);
+						this.player_data.item_list[0].count = this.player_data.item_list[0].count + 4;
+						this.player_data.item_list[1].count = this.player_data.item_list[1].count + 3;
+						this.player_data.item_list[2].count = this.player_data.item_list[2].count + 3;
+						this.player_data.item_list[3].count = this.player_data.item_list[3].count + 1;
+						this.player_data.item_list[5].count = this.player_data.item_list[5].count + 5;
 					}
 					else 		//More weapons
 					{
-						System.out.println("This camp was well stocked with food, water, and plenty of weapons! You also find some basic first aid");
-						System.out.println("You find 3 Food, 4 Water, 1 Medicine, 2 Knives, 1 Gun, and 15 Ammuntion!");
-						stats.item_list[0].count = stats.item_list[0].count + 4;
-						stats.item_list[1].count = stats.item_list[1].count + 3;
-						stats.item_list[2].count = stats.item_list[2].count + 3;
-						stats.item_list[3].count = stats.item_list[3].count + 2;
-						stats.item_list[4].count = stats.item_list[4].count + 1;
-						stats.item_list[5].count = stats.item_list[5].count + 15;
+						this.displayText("What great fortune! You managed to scour the whole camp for lots of supplies!\n"
+								+ "This camp was well stocked with food, water, and plenty of weapons! You also find some basic first aid\n"
+								+ "You found 3 Food, 4 Water, 1 Medicine, 2 Knives, 1 Gun, and 15 Ammuntion!", 0, 0);
+						this.player_data.item_list[0].count = this.player_data.item_list[0].count + 4;
+						this.player_data.item_list[1].count = this.player_data.item_list[1].count + 3;
+						this.player_data.item_list[2].count = this.player_data.item_list[2].count + 3;
+						this.player_data.item_list[3].count = this.player_data.item_list[3].count + 2;
+						this.player_data.item_list[4].count = this.player_data.item_list[4].count + 1;
+						this.player_data.item_list[5].count = this.player_data.item_list[5].count + 15;
 					}
 				}
 			}
 		}
 		else if(event < 80) 		//Nothing happened event
 		{
-			System.out.println("You found nothing on this foraging session");
+			this.displayText("You found nothing on this foraging session", 0, 0);
+		}
+		else if(event < 85)
+		{
+			this.displayText("Placeholder for Bandit event", 0, 0);
+			this.player_data.item_list[0].count++;
+			this.player_data.item_list[1].count++;
 		}
 		else if(event < 90)
 		{
-			System.out.println("Placeholder for Bandit event");
+			this.displayText("Placeholder for Merchant event", 0, 0);
+			this.player_data.item_list[0].count++;
+			this.player_data.item_list[1].count++;
 		}
-		else
+		else 		//Good event that gives a surplus of supplies
 		{
-			System.out.println("Placeholder for Merchant event");
+			event = random_gen.nextInt(100);
+			
+			if(event < 50)
+			{
+				this.displayText("You had a very succesful foraging session\n"
+						+ "You found 2 Food and 1 Water!", 0, 0);
+				this.player_data.item_list[0].count = this.player_data.item_list[0].count + 2;
+				this.player_data.item_list[1].count = this.player_data.item_list[1].count + 1;
+			}
+			else
+			{
+				this.displayText("You had a very succesful foraging session\n"
+						+ "You found 1 Food and 2 Water!", 0, 0);
+				this.player_data.item_list[0].count = this.player_data.item_list[0].count + 1;
+				this.player_data.item_list[1].count = this.player_data.item_list[1].count + 2;
+			}
 		}
+		
 		
 		return;
 	}
@@ -306,12 +393,8 @@ public class Game
 		data.date = 1;
 		data.end_date = 50;
 		
-		while(data.date < data.end_date)
-		{
-				menuMethod(player_stats, data);
-		}
-		
-		return;
+		new Game(player_stats, data).setVisible(true);
 	}
+
 
 }
