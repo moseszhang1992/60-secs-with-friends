@@ -4,7 +4,6 @@ import java.util.*;
 import java.awt.*; 			//For adding fonts, color, and graphics to frames
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-
 import javax.swing.*; 		//For frames and buttons and such
 
 /*Class that will define every item in the game
@@ -36,14 +35,17 @@ class Resources
 	int hydration; 		//Hydration rating for player
 	int sanity; 		//Sanity rating for player
 	int health;
+	int specialty; 		//Makes player a survival expert[0], soldier[1], or medic[2]. Implement more later
 	Item[] item_list = new Item[6];	//List of items that the player has
 	
 	//Initializes the resources that the player has
-	public Resources(int hung, int hydr, int san, int hp, Item[] list)
+	public Resources(int hung, int hydr, int san, int hp, int spc, Item[] list)
 	{
 		hunger = hung;
 		hydration = hydr;
 		sanity = san;
+		health = hp;
+		specialty = spc;
 		
 		//Initializing the player inventory
 		item_list[0] = new Item("Food", 5);
@@ -71,8 +73,8 @@ class WorldData
 
 public class Game extends JFrame implements ActionListener
 {
-	final int GAME_WIDTH = 1000; 		//Width of game frame
-	final int GAME_LENGTH = 700;		//Length of game frame
+	final int GAME_WIDTH = 400; 		//Width of game frame
+	final int GAME_LENGTH = 500;		//Length of game frame
 	Resources player_data; 			//Object that holds all the data the player can manipulate or has direct access to
 	WorldData global_data;			//Object that holds all the global variable data. Date, end date, etc.
 	Font header_font;				//Holds the font style for any headings
@@ -80,6 +82,7 @@ public class Game extends JFrame implements ActionListener
 	Font text_font;					//Holds the font for any text that appears on screen
 	JPanel text_panel = new JPanel(); 				//Holds the text boxes the game has. Here because I need to add and remove this whenever I want
 	JTextArea text = new JTextArea(); 			//Holds the text to put into the text. Here because I need to add and remove this whenever I want
+	GridBagConstraints text_layout = new GridBagConstraints(); 		//GridBagConstraint to place the text box on the main frame
 	
 	/*Class constructor that displays the GUI for the player
 	 *Shows menu options and make it interactable to show inventory or menu options
@@ -114,12 +117,21 @@ public class Game extends JFrame implements ActionListener
 		forage_button.addActionListener(this);
 		inventory_button.addActionListener(this);
 		
-		//Adding each button to the main game frame
-		add(eat_button);
-		add(drink_button);
-		add(meditate_button);
-		add(forage_button);
-		add(inventory_button);	
+		//Adding each button to the main game frame with setting the text button layout
+		this.text_layout.gridx = 2;
+		this.text_layout.gridy = 5;
+		this.text_layout.fill = GridBagConstraints.HORIZONTAL; 		//Make all buttons fill the same space
+		add(eat_button, this.text_layout);
+		this.text_layout.gridy++;
+		add(drink_button, this.text_layout);
+		this.text_layout.gridy++;
+		add(meditate_button, this.text_layout);
+		this.text_layout.gridy++;
+		add(forage_button, this.text_layout);
+		this.text_layout.gridy++;
+		add(inventory_button, this.text_layout);
+		
+		statDisplay(stats, data);
 	}
 
 	/*Main called method for every time a button gets pressed in the Game class which calls the main GUI
@@ -130,24 +142,25 @@ public class Game extends JFrame implements ActionListener
 	{
 		// TODO Auto-generated method stub	
 		String choice = e.getActionCommand();
+		
 		if(choice.equals("Eat"))
 		{
 			if(this.player_data.item_list[0].count > 0) 		//Check if player has food in inventory
 			{
 				if(this.player_data.hunger > 90) 			//Check if player is full or not
 				{
-					this.displayText("You are too full to eat",200 ,150);
+					JOptionPane.showMessageDialog(null, "You are too full to eat");
 				}
 				else 		//Player eats food
 				{
-					this.displayText("You eat some food",0 , 0);
+					JOptionPane.showMessageDialog(null, "You ate some food");
 					this.player_data.hunger = this.player_data.hunger + 10;
 					this.player_data.item_list[0].count--;
 				}
 			}
 			else
 			{
-				this.displayText("You have no food left",0,0);
+				JOptionPane.showMessageDialog(null, "You have no food left");
 			}	
 		}
 		else if(choice.equals("Drink"))
@@ -156,11 +169,11 @@ public class Game extends JFrame implements ActionListener
 			{ 
 				if(this.player_data.hydration > 90) 			//Check if player is thirsty or not
 				{
-					this.displayText("You are not thirsty",0,0);
+					JOptionPane.showMessageDialog(null, "You are not thirsty");
 				}
 				else 		//Player drinks water
 				{
-					this.displayText("You drink some water",0, 0);
+					JOptionPane.showMessageDialog(null, "You drink some water");
 					this.player_data.hydration = this.player_data.hydration + 10;
 					this.player_data.item_list[1].count--;
 				}
@@ -168,12 +181,12 @@ public class Game extends JFrame implements ActionListener
 			}
 			else
 			{
-				this.displayText("You have no water left",0,0);
+				JOptionPane.showMessageDialog(null, "You have no water left");
 			}
 		}
 		else if(choice.equals("Meditate"))
 		{
-			this.displayText("You meditated", 0, 0);
+			JOptionPane.showMessageDialog(null, "You meditated");
 			this.player_data.sanity = this.player_data.sanity + 5;
 			this.player_data.hunger = this.player_data.hunger - 5;
 			this.player_data.hydration = this.player_data.hydration - 5;
@@ -200,8 +213,9 @@ public class Game extends JFrame implements ActionListener
 				inventory_data = inventory_data + " - " + inv_count + "\n"; 		//Add strings together, format, then end with return character
 				inventory = inventory + inventory_data;
 			}
-			this.displayText(inventory, 0, 0);
+			JOptionPane.showMessageDialog(null, inventory);
 		}
+		statDisplay(player_data, global_data);
 	}
 	
 	/*Method that takes in a string from the source code and outputs into the frame
@@ -219,14 +233,34 @@ public class Game extends JFrame implements ActionListener
 		//Initialize new text panel and label
 		this.text_panel = new JPanel();
 		this.text = new JTextArea(display);
+		this.text_layout.gridx = x_coordinate;
+		this.text_layout.gridy = y_coordinate;
 		
 		text.setFont(text_font); 		//Setting font of text
 		this.text_panel.add(text); 		//Add the text to the panel
-		this.add(this.text_panel);		//Adding text panel to the main frame
-		this.text_panel.setLocation(x_coordinate, y_coordinate); 		//Supposed to set the text panel at a certain location.
+		this.add(this.text_panel, this.text_layout);		//Adding text panel to the main frame
 		this.setVisible(true); 			//Let the text be visible
 		this.validate(); 		//Update the frame to show the current panel state
 		this.repaint();
+	}
+	
+	/*Method that displays all the player's information and current date
+	 *Is called every time a day is incremented
+	 */
+	public void statDisplay(Resources stats, WorldData data)
+	{
+		this.text_panel = new JPanel();
+		this.text = new JTextArea("Day: " + data.date + "/" + data.end_date + "\n" +
+								  "Health: " + stats.health + "\n" + 
+								  "Hunger: " + stats.hunger + "\n" + 
+								  "Hydration: " + stats.hydration + "\n" + 
+								  "Sanity: " + stats.sanity);
+		this.text.setFont(text_font);
+		this.text_panel.add(this.text);
+		this.text_layout.gridx = 0;
+		this.text_layout.gridy = 0;
+		add(this.text_panel, this.text_layout);
+		this.setVisible(true);
 	}
 	
 	/*Method that will handle the foraging call
@@ -245,118 +279,137 @@ public class Game extends JFrame implements ActionListener
 		
 		if(event < 40) 		//Most standard event that gives 1 food and 1 water 
 		{
-			this.displayText("You were moderately successful in your forage session\n"
-					+ "You gained 1 Food and 1 Water!",0,0);
-			this.displayText("You gained 1 Food and 1 Water!", 0, 0);
+			JOptionPane.showMessageDialog(null,
+					"You were moderately successful in your forage session\n"
+					+ "You gained 1 Food and 1 Water!");
 			this.player_data.item_list[0].count++;
 			this.player_data.item_list[1].count++;
 		}
 		else if(event < 50) 		//Gives 3 water
 		{
-			this.displayText("You found a fresh supply of water\n"
-					+ "You gained 4 Water!", 0, 0);
-			this.player_data.item_list[1].count = this.player_data.item_list[1].count + 4;
+			JOptionPane.showMessageDialog(null,
+					"You found a fresh supply of water\n"
+					+ "You gained 3 Water!");
+			this.player_data.item_list[1].count += 3;
 		}
 		else if(event < 60) 		//Gives 3 food
 		{
-			this.displayText("You managed to forage around for a lot of food\n"
-					+ "You gained 3 Food!", 0, 0);
-			this.player_data.item_list[0].count = this.player_data.item_list[0].count + 3;
+			JOptionPane.showMessageDialog(null,
+					"You managed to forage around for a lot of food\n"
+					+ "You gained 2 Food!");
+			this.player_data.item_list[0].count += 2;
 		}
 		else if(event < 70) 		//Give 2 Food and 2 Water for the cost of 20 life
 		{
-			this.displayText("You found a huge supply of food and water!"
-							 + "It was trapped! But you still manage to make off with the goods\n"
-							 + "You gained 2 Food and 2 Water! \n  You lost 20 life!", 0, 0);
-			this.player_data.item_list[0].count = this.player_data.item_list[0].count + 2;
-			this.player_data.item_list[1].count = this.player_data.item_list[1].count + 2;
+			JOptionPane.showMessageDialog(null,
+					"You found a huge supply of food and water left on the side of the road\n"
+					+ "It was trapped! But you still manage to make off with the goods\n"
+					+ "You gained 2 Food and 2 Water!\n" 
+					+ "You lost 20 life!");
+			this.player_data.item_list[0].count += 2;
+			this.player_data.item_list[1].count += 2;
 			this.player_data.health = this.player_data.health - 20;
 		}
 		else if(event < 75) 		//Give player option to search through an abandoned camp. Super high risk/reward option. Add in ways to change odds?
 		{	
+			//Quick object creation to build options for the choice dialogue
+			Object[] options = {"Yes","No"};
 			int choice = 0;
-			this.displayText("You find an abandoned camp with most of its supplies still there. Whoever was here left in a hurry\n "
-					         + "Something tells you whatever scared them off may still be around. Do you take the time to scavanege the camp?\n"
-					         + "1 for yes 2 for no", 0, 0);
+			choice = JOptionPane.showOptionDialog(null,
+							 "You find an abandoned camp with most of its supplies still there. Whoever was here left in a hurry\n "
+					         + "Something tells you whatever scared them off may still be around. Do you take the time to scavanege the camp?",
+					         "EVENT", JOptionPane.YES_OPTION, JOptionPane.NO_OPTION, null, options, options[1]);
 			
 			//Create a new pop up text box for this event
 			//Will implement later
 			
-			if(choice == 1) 		//If player decides to raid the camp
+			if(choice == 0) 		//If player decides to raid the camp
 			{
 				event = random_gen.nextInt(100);
 				
 				if(event < 75) 		//Case of failure. Lose 50 life. May add in losing weapons or other supplies.
 				{
-					this.displayText("You were attacked! Limping, you leave in a panic and make off with your life \n"
-							+ "You lose 50 life!", 0, 0);
+					JOptionPane.showMessageDialog(null,
+							"You were attacked! Limping, you leave in a panic and make off with your life \n"
+							+ "You lose 50 life!");
 					this.player_data.health = this.player_data.health - 50;
 					
 					event = random_gen.nextInt(100);
 					
 					if(event < 50) 		//Player makes it back home
 					{
-						this.displayText("You barely made it back to camp", 0, 0);
+						JOptionPane.showMessageDialog(null, "You barely made it back to camp");
 					}
 					else if(event < 75) 		//Player gets a little food
 					{
-						this.displayText("On the way back you find a freshy killed animal with most the meat in tact\n"
-								+ "You got 1 Food!", 0, 0);
+						JOptionPane.showMessageDialog(null,
+								"On the way back you find a freshy killed animal with most the meat intact\n"
+								+ "You got 1 Food!");
 						this.player_data.item_list[0].count++;
 					}
 					else 				//Player finds a little water
 					{
-						this.displayText("On the way back you stop by a small stream of fresh water to get some rest\n"
-								+ "You got 1 Water!", 0, 0);
+						JOptionPane.showMessageDialog(null,
+								"On the way back you stop by a small stream of fresh water to get some rest\n"
+								+ "You got 1 Water!");
 						this.player_data.item_list[1].count++;
 						
 					}
 				}
-				else
+				else 		//Case of success
 				{
 					event = random_gen.nextInt(100);
 					
 					if(event > 50) 		//More medicine
 					{
-						this.displayText("What great fortune! You managed to scour the whole camp for lots of supplies!\n"
+						JOptionPane.showMessageDialog(null,
+								"What great fortune! You managed to scour the whole camp for lots of supplies!\n"
 								+ "This camp was well stocked with food, water, and medicine! You also come across some weapons\n"
-								+ "You found 4 Food, 3 Water, 3 Medicine, 1 Knife, and 5 Ammunition!", 0, 0);
-						this.player_data.item_list[0].count = this.player_data.item_list[0].count + 4;
-						this.player_data.item_list[1].count = this.player_data.item_list[1].count + 3;
-						this.player_data.item_list[2].count = this.player_data.item_list[2].count + 3;
-						this.player_data.item_list[3].count = this.player_data.item_list[3].count + 1;
-						this.player_data.item_list[5].count = this.player_data.item_list[5].count + 5;
+								+ "You found 4 Food, 3 Water, 3 Medicine, 1 Knife, and 5 Ammunition!");
+						this.player_data.item_list[0].count += 4;
+						this.player_data.item_list[1].count += 3;
+						this.player_data.item_list[2].count += 3;
+						this.player_data.item_list[3].count += 1;
+						this.player_data.item_list[5].count += 5;
 					}
 					else 		//More weapons
 					{
-						this.displayText("What great fortune! You managed to scour the whole camp for lots of supplies!\n"
+						JOptionPane.showMessageDialog(null,
+								"What great fortune! You managed to scour the whole camp for lots of supplies!\n"
 								+ "This camp was well stocked with food, water, and plenty of weapons! You also find some basic first aid\n"
-								+ "You found 3 Food, 4 Water, 1 Medicine, 2 Knives, 1 Gun, and 15 Ammuntion!", 0, 0);
-						this.player_data.item_list[0].count = this.player_data.item_list[0].count + 4;
-						this.player_data.item_list[1].count = this.player_data.item_list[1].count + 3;
-						this.player_data.item_list[2].count = this.player_data.item_list[2].count + 3;
-						this.player_data.item_list[3].count = this.player_data.item_list[3].count + 2;
-						this.player_data.item_list[4].count = this.player_data.item_list[4].count + 1;
-						this.player_data.item_list[5].count = this.player_data.item_list[5].count + 15;
+								+ "You found 3 Food, 4 Water, 1 Medicine, 2 Knives, 1 Gun, and 15 Ammuntion!");
+						this.player_data.item_list[0].count += 4;
+						this.player_data.item_list[1].count += 3;
+						this.player_data.item_list[2].count += 3;
+						this.player_data.item_list[3].count += 2;
+						this.player_data.item_list[4].count += 1;
+						this.player_data.item_list[5].count += 15;
 					}
 				}
 			}
 		}
 		else if(event < 80) 		//Nothing happened event
 		{
-			this.displayText("You found nothing on this foraging session", 0, 0);
+			JOptionPane.showMessageDialog(null, "You found nothing on this foraging session");
 		}
 		else if(event < 85)
 		{
-			this.displayText("Placeholder for Bandit event", 0, 0);
+			JOptionPane.showMessageDialog(null, "Placeholder for Bandit event");
 			this.player_data.item_list[0].count++;
 			this.player_data.item_list[1].count++;
 		}
 		else if(event < 90)
 		{
-			this.displayText("Placeholder for Merchant event", 0, 0);
+			JOptionPane.showMessageDialog(null, "Placeholder for Merchant event");
 			this.player_data.item_list[0].count++;
 			this.player_data.item_list[1].count++;
+		}
+		else if(event < 95) 		//Finding 1-2 medicine
+		{
+			JOptionPane.showMessageDialog(null,
+					"You found some valuable medical supplies!\n" +
+					"You gained 2 medicine!");
+			this.player_data.item_list[2].count += 2;
 		}
 		else 		//Good event that gives a surplus of supplies
 		{
@@ -364,21 +417,21 @@ public class Game extends JFrame implements ActionListener
 			
 			if(event < 50)
 			{
-				this.displayText("You had a very succesful foraging session\n"
-						+ "You found 2 Food and 1 Water!", 0, 0);
-				this.player_data.item_list[0].count = this.player_data.item_list[0].count + 2;
-				this.player_data.item_list[1].count = this.player_data.item_list[1].count + 1;
+				JOptionPane.showMessageDialog(null,
+						"You had a very succesful foraging session\n"
+						+ "You found 3 Food and 2 Water!");
+				this.player_data.item_list[0].count += 3;
+				this.player_data.item_list[1].count += 2;
 			}
 			else
 			{
-				this.displayText("You had a very succesful foraging session\n"
-						+ "You found 1 Food and 2 Water!", 0, 0);
-				this.player_data.item_list[0].count = this.player_data.item_list[0].count + 1;
-				this.player_data.item_list[1].count = this.player_data.item_list[1].count + 2;
+				JOptionPane.showMessageDialog(null,
+						"You had a very succesful foraging session\n"
+						+ "You found 2 Food and 3 Water!");;
+				this.player_data.item_list[0].count += 2;
+				this.player_data.item_list[1].count += 3;
 			}
 		}
-		
-		
 		return;
 	}
 	
@@ -388,13 +441,11 @@ public class Game extends JFrame implements ActionListener
 		
 		//Initializing all data for game to begin
 		Item[] list = new Item[6];
-		Resources player_stats = new Resources(100, 100, 100, 100, list);
+		Resources player_stats = new Resources(100, 100, 100, 100, 0, list);
 		WorldData data = new WorldData();
 		data.date = 1;
 		data.end_date = 50;
 		
 		new Game(player_stats, data).setVisible(true);
 	}
-
-
 }
