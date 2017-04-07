@@ -72,7 +72,7 @@ class WorldData
 
 public class Game extends JFrame
 {
-	final String[] SPECIALTY = {"Medic", "Soldier", "Survival Expert", "Artist", "Engineer"};
+	final String[] SPECIALTY = {"Medic", "Soldier", "Survival Expert", "Artist"}; 		//Holds all the specialities here
 	final int GAME_WIDTH = 400; 		//Width of game frame
 	final int GAME_LENGTH = 500;		//Length of game frame
 	Resources player_data; 			//Object that holds all the data the player can manipulate or has direct access to
@@ -106,8 +106,8 @@ public class Game extends JFrame
 		setResizable(false); 		//so player can't resize the frame
 		setLayout(new GridBagLayout());
 		
-		basicMenuDisplay(stats, data);
-		statDisplay(stats, data);
+		basicMenuDisplay(stats, data); 			//Shows the basic menu options for the player
+		statDisplay(stats, data);				//Displays the basic information to player
 		this.turn_timer = callTimerDisplay(stats, data);
 	}
 
@@ -147,8 +147,6 @@ public class Game extends JFrame
 	@SuppressWarnings("serial")
 	public void basicMenuDisplay(Resources stats, WorldData data)
 	{
-		Timer timer = this.turn_timer; 		//Setting class variable to a local variable to call when using buttons
-		
 		//Button to make player eat food. Does not go over 100 and player cannot eat when not hungry or has no food
 		JButton eat_button = new JButton(new AbstractAction("Eat")
 			{
@@ -211,8 +209,8 @@ public class Game extends JFrame
 				@Override
 				public void actionPerformed(ActionEvent e)
 				{
-					timer.cancel(); 		//Stops the timer from running
-					timer.purge(); 		//Deletes the old timer cache
+					turn_timer.cancel(); 		//Stops the timer from running
+					turn_timer.purge(); 		//Deletes the old timer cache
 						
 					JOptionPane.showMessageDialog(null, "You meditated");
 					stats.sanity += 5;
@@ -224,7 +222,7 @@ public class Game extends JFrame
 					global_data.timer = 60;
 					gameStateCheck(player_data, global_data);
 					statDisplay(stats,data);
-					callTimerDisplay(stats, data);
+					turn_timer = callTimerDisplay(stats, data);
 				}
 			});
 		meditate_button.setFont(header_font);
@@ -235,8 +233,8 @@ public class Game extends JFrame
 				@Override
 				public void actionPerformed(ActionEvent e)
 				{
-					timer.purge();
-					timer.cancel(); 		//Stops the timer from running
+					turn_timer.purge();
+					turn_timer.cancel(); 		//Stops the timer from running
 					
 					stats.hunger -= 10;
 					stats.hydration -= 10;
@@ -246,7 +244,7 @@ public class Game extends JFrame
 					global_data.timer = 60;
 					gameStateCheck(player_data, global_data);
 					statDisplay(stats, data);
-					callTimerDisplay(stats, data);
+					turn_timer = callTimerDisplay(stats, data);
 				}
 			
 			});
@@ -258,9 +256,6 @@ public class Game extends JFrame
 				@Override
 				public void actionPerformed(ActionEvent e)
 				{
-					timer.cancel(); 		//Stops the timer from running
-					timer.purge(); 		//Deletes the older timer cache
-					
 					String inventory_data; 		//Holds item name
 					String inv_count; 			//Holds item count
 					String inventory = "";
@@ -292,10 +287,8 @@ public class Game extends JFrame
 		add(forage_button, this.text_layout);
 		this.text_layout.gridy++;
 		add(inventory_button, this.text_layout);
-		
-		statDisplay(stats, data);
 	}
-	
+
 	/*Method that brings up the timer used in the game screen
 	 *Returns a Timer in order to be able to terminate the timer whenever an action takes place
 	 */
