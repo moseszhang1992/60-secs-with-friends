@@ -14,6 +14,7 @@ import javax.swing.*; 		//For frames and buttons and such
  */
 class Item
 {
+	
 	String name; 		//Name of item
 	int count;			//Number of items the player owns
 	
@@ -72,11 +73,12 @@ class WorldData
 
 public class Game extends JFrame
 {
-	final String[] SPECIALTY = {"Medic", "Soldier", "Survival Expert", "Artist", "Engineer"};
+	final String[] SPECIALTY = {"Medic", "Soldier", "Survival Expert", "Artist"};
 	final int GAME_WIDTH = 400; 		//Width of game frame
 	final int GAME_LENGTH = 500;		//Length of game frame
-	Resources player_data; 			//Object that holds all the data the player can manipulate or has direct access to
+	Resources[] player_data; 			//Object that holds all the data the player can manipulate or has direct access to
 	WorldData global_data;			//Object that holds all the global variable data. Date, end date, etc.
+	int p_index = 0; 
 	Font header_font;				//Holds the font style for any headings
 	Font menu_font;					//Holds the font style for all the menu buttons
 	Font text_font;					//Holds the font for any text that appears on screen
@@ -91,7 +93,9 @@ public class Game extends JFrame
 	 *Shows menu options and make it interactable to show inventory or menu options
 	 *This will be the main game frame that will be used
 	 */
-	public Game(Resources stats, WorldData data) 
+	
+	//have to loop through players here
+	public Game(Resources[] stats, WorldData data) 
 	{
 		player_data = stats; 			//Constructor variable for player data
 		global_data = data;			//Constructor variable for global data
@@ -106,16 +110,18 @@ public class Game extends JFrame
 		setResizable(false); 		//so player can't resize the frame
 		setLayout(new GridBagLayout());
 		
-		basicMenuDisplay(stats, data);
-		statDisplay(stats, data);
-		this.turn_timer = callTimerDisplay(stats, data);
+		while (data.date != data.end_date) {
+			basicMenuDisplay(stats, data, p_index);
+			statDisplay(stats, data, p_index);
+			this.turn_timer = callTimerDisplay(stats, data, p_index);
+		}
 	}
 
 	
 	/*Method that displays all the player's information and current date
 	 *Is called every time a day is incremented
 	 */
-	public void statDisplay(Resources stats, WorldData data)
+	public void statDisplay(Resources[] stats, WorldData data, int player_index)
 	{
 		//Deleting the old display
 		this.remove(this.text_panel);
@@ -125,11 +131,11 @@ public class Game extends JFrame
 		
 		this.text_panel = new JPanel();
 		this.text = new JTextArea("Day: " + data.date + "/" + data.end_date + "\n" +
-								  "Health: " + stats.health + "\n" + 
-								  "Hunger: " + stats.hunger + "\n" + 
-								  "Hydration: " + stats.hydration + "\n" + 
-								  "Sanity: " + stats.sanity + "\n" +
-								  "Specialty: " + SPECIALTY[stats.specialty]);
+								  "Health: " + stats[player_index].health + "\n" + 
+								  "Hunger: " + stats[player_index].hunger + "\n" + 
+								  "Hydration: " + stats[player_index].hydration + "\n" + 
+								  "Sanity: " + stats[player_index].sanity + "\n" +
+								  "Specialty: " + SPECIALTY[stats[player_index].specialty]);
 		this.text.setFont(text_font);
 		this.text_panel.add(this.text);
 		this.text_layout.gridx = 0;
@@ -145,7 +151,7 @@ public class Game extends JFrame
 	 *Each button has its own Action to make things more manageable
 	 */
 	@SuppressWarnings("serial")
-	public void basicMenuDisplay(Resources stats, WorldData data)
+	public void basicMenuDisplay(Resources stats, WorldData data, int player_index)
 	{
 		Timer timer = this.turn_timer; 		//Setting class variable to a local variable to call when using buttons
 		
@@ -155,18 +161,18 @@ public class Game extends JFrame
 				@Override
 				public void actionPerformed(ActionEvent e)
 				{
-					if(stats.item_list[0].count > 0) 		//Check if player has food in inventory
+					if(stats[player_index].item_list[0].count > 0) 		//Check if player has food in inventory
 					{
-						if(stats.hunger > 90) 			//Check if player is full or not
+						if(stats[player_index].hunger > 90) 			//Check if player is full or not
 						{
 							JOptionPane.showMessageDialog(null, "You are too full to eat");
 						}
 						else 		//Player eats food
 						{
 							JOptionPane.showMessageDialog(null, "You ate some food");
-							stats.hunger += 10;
-							stats.item_list[0].count--;
-							statDisplay(stats, data);
+							stats[player_index].hunger += 10;
+							stats[player_index].item_list[0].count--;
+							statDisplay(stats, data, player_index);
 						}
 					}
 					else
@@ -183,18 +189,18 @@ public class Game extends JFrame
 				@Override
 				public void actionPerformed(ActionEvent e)
 				{
-					if(stats.item_list[1].count > 0) 		//Check if player has water
+					if(stats[player_index].item_list[1].count > 0) 		//Check if player has water
 					{ 
-						if(stats.hydration > 90) 			//Check if player is thirsty or not
+						if(stats[player_index].hydration > 90) 			//Check if player is thirsty or not
 						{
 							JOptionPane.showMessageDialog(null, "You are not thirsty");
 						}
 						else 		//Player drinks water
 						{
 							JOptionPane.showMessageDialog(null, "You drink some water");
-							stats.hydration += 10;
-							stats.item_list[1].count--;
-							statDisplay(stats, data);
+							stats[player_index].hydration += 10;
+							stats[player_index].item_list[1].count--;
+							statDisplay(stats, data, player_index);
 						}
 					}
 					else
@@ -215,16 +221,23 @@ public class Game extends JFrame
 					timer.purge(); 		//Deletes the old timer cache
 						
 					JOptionPane.showMessageDialog(null, "You meditated");
-					stats.sanity += 5;
-					stats.hunger -= 5;
-					stats.hydration -= 5;
-					stats.health += 10;
-					data.date ++;
-						
+					stats[player_index].sanity += 5;
+					stats[player_index].hunger -= 5;
+					stats[player_index].hydration -= 5;
+					stats[player_index].health += 10;
+					if (p_index = 3) 
+					{
+						data.date ++;
+						p_index = 0;
+					}
+					else 
+					{ 
+						p_index++; 
+					}
+
 					global_data.timer = 60;
-					gameStateCheck(player_data, global_data);
-					statDisplay(stats,data);
-					callTimerDisplay(stats, data);
+					gameStateCheck(player_data, global_data, player_index);
+					callTimerDisplay(stats, data, player_index);
 				}
 			});
 		meditate_button.setFont(header_font);
@@ -238,15 +251,18 @@ public class Game extends JFrame
 					timer.purge();
 					timer.cancel(); 		//Stops the timer from running
 					
-					stats.hunger -= 10;
-					stats.hydration -= 10;
-					data.date ++;
+					stats[player_index].hunger -= 10;
+					stats[player_index].hydration -= 10;
 					forageMethod();
+					if (p_index = 3) {
+						data.date ++;
+						p_index = 0;
+					}
+					else { p_index++; }
 					
 					global_data.timer = 60;
-					gameStateCheck(player_data, global_data);
-					statDisplay(stats, data);
-					callTimerDisplay(stats, data);
+					gameStateCheck(player_data, global_data, player_index);
+					callTimerDisplay(stats, data, player_index);
 				}
 			
 			});
@@ -268,8 +284,8 @@ public class Game extends JFrame
 					//Loops through all available items in the player inventory
 					for(int i = 0; i < 6; i++)
 					{
-						inventory_data = stats.item_list[i].name; 		//Sets the name of item
-						inv_count = Integer.toString(stats.item_list[i].count); 		//Convert the count of item into a string
+						inventory_data = stats[player_index].item_list[i].name; 		//Sets the name of item
+						inv_count = Integer.toString(stats[player_index].item_list[i].count); 		//Convert the count of item into a string
 						inventory_data = inventory_data + " - " + inv_count + "\n"; 		//Add strings together, format, then end with return character
 						inventory = inventory + inventory_data;
 					}
@@ -293,13 +309,13 @@ public class Game extends JFrame
 		this.text_layout.gridy++;
 		add(inventory_button, this.text_layout);
 		
-		statDisplay(stats, data);
+		statDisplay(stats, data, player_index);
 	}
 	
 	/*Method that brings up the timer used in the game screen
 	 *Returns a Timer in order to be able to terminate the timer whenever an action takes place
 	 */
-	public Timer callTimerDisplay(Resources stats, WorldData data)
+	public Timer callTimerDisplay(Resources[] stats, WorldData data, int player_index)
 	{	
 		this.turn_timer = new Timer(); 		//Initialize a new Timer to make a new one
 		
@@ -333,13 +349,20 @@ public class Game extends JFrame
 					{
 						turn_timer.cancel();
 						turn_timer.purge();
-						stats.hunger -= 10;
-						stats.hydration -= 10;
-						data.date++;
+						stats[player_index].hunger -= 10;
+						stats[player_index].hydration -= 10;
+						if (p_index = 3) {
+							data.date ++;
+							p_index = 0;
+						}
+						else 
+						{ 
+							p_index++; 
+						}
 						data.timer = 60;
 						JOptionPane.showMessageDialog(null, "You did nothing all day");
 						statDisplay(player_data, global_data);
-						callTimerDisplay(player_data, global_data);
+						callTimerDisplay(player_data, global_data,player_index);
 					}
 				}
 			}, 0, 1000);
@@ -361,22 +384,22 @@ public class Game extends JFrame
 			JOptionPane.showMessageDialog(null,
 					"You were moderately successful in your forage session\n"
 					+ "You gained 1 Food and 1 Water!");
-			this.player_data.item_list[0].count++;
-			this.player_data.item_list[1].count++;
+			this.player_data[p_index].item_list[0].count++;
+			this.player_data[p_index].item_list[1].count++;
 		}
 		else if(event < 50) 		//Gives 3 water
 		{
 			JOptionPane.showMessageDialog(null,
 					"You found a fresh supply of water\n"
 					+ "You gained 3 Water!");
-			this.player_data.item_list[1].count += 3;
+			this.player_data[p_index].item_list[1].count += 3;
 		}
 		else if(event < 60) 		//Gives 3 food
 		{
 			JOptionPane.showMessageDialog(null,
 					"You managed to forage around for a lot of food\n"
 					+ "You gained 2 Food!");
-			this.player_data.item_list[0].count += 2;
+			this.player_data[p_index].item_list[0].count += 2;
 		}
 		else if(event < 70) 		//Give 2 Food and 2 Water for the cost of 20 life
 		{
@@ -385,9 +408,9 @@ public class Game extends JFrame
 					+ "It was trapped! But you still manage to make off with the goods\n"
 					+ "You gained 2 Food and 2 Water!\n" 
 					+ "You lost 20 life!");
-			this.player_data.item_list[0].count += 2;
-			this.player_data.item_list[1].count += 2;
-			this.player_data.health = this.player_data.health - 20;
+			this.player_data[p_index].item_list[0].count += 2;
+			this.player_data[p_index].item_list[1].count += 2;
+			this.player_data[p_index].health = this.player_data.health - 20;
 		}
 		else if(event < 75) 		//Give player option to search through an abandoned camp. Super high risk/reward option. Add in ways to change odds?
 		{	
@@ -411,7 +434,7 @@ public class Game extends JFrame
 					JOptionPane.showMessageDialog(null,
 							"You were attacked! Limping, you leave in a panic and make off with your life \n"
 							+ "You lose 50 life!");
-					this.player_data.health = this.player_data.health - 50;
+					this.player_data[p_index].health = this.player_data.health - 50;
 					
 					event = random_gen.nextInt(100);
 					
@@ -424,14 +447,14 @@ public class Game extends JFrame
 						JOptionPane.showMessageDialog(null,
 								"On the way back you find a freshy killed animal with most the meat intact\n"
 								+ "You got 1 Food!");
-						this.player_data.item_list[0].count++;
+						this.player_data[p_index].item_list[0].count++;
 					}
 					else 				//Player finds a little water
 					{
 						JOptionPane.showMessageDialog(null,
 								"On the way back you stop by a small stream of fresh water to get some rest\n"
 								+ "You got 1 Water!");
-						this.player_data.item_list[1].count++;
+						this.player_data[p_index].item_list[1].count++;
 						
 					}
 				}
@@ -445,11 +468,11 @@ public class Game extends JFrame
 								"What great fortune! You managed to scour the whole camp for lots of supplies!\n"
 								+ "This camp was well stocked with food, water, and medicine! You also come across some weapons\n"
 								+ "You found 4 Food, 3 Water, 3 Medicine, 1 Knife, and 5 Ammunition!");
-						this.player_data.item_list[0].count += 4;
-						this.player_data.item_list[1].count += 3;
-						this.player_data.item_list[2].count += 3;
-						this.player_data.item_list[3].count += 1;
-						this.player_data.item_list[5].count += 5;
+						this.player_data[p_index].item_list[0].count += 4;
+						this.player_data[p_index].item_list[1].count += 3;
+						this.player_data[p_index].item_list[2].count += 3;
+						this.player_data[p_index].item_list[3].count += 1;
+						this.player_data[p_index].item_list[5].count += 5;
 					}
 					else 		//More weapons
 					{
@@ -457,12 +480,12 @@ public class Game extends JFrame
 								"What great fortune! You managed to scour the whole camp for lots of supplies!\n"
 								+ "This camp was well stocked with food, water, and plenty of weapons! You also find some basic first aid\n"
 								+ "You found 3 Food, 4 Water, 1 Medicine, 2 Knives, 1 Gun, and 15 Ammuntion!");
-						this.player_data.item_list[0].count += 4;
-						this.player_data.item_list[1].count += 3;
-						this.player_data.item_list[2].count += 3;
-						this.player_data.item_list[3].count += 2;
-						this.player_data.item_list[4].count += 1;
-						this.player_data.item_list[5].count += 15;
+						this.player_data[p_index].item_list[0].count += 4;
+						this.player_data[p_index].item_list[1].count += 3;
+						this.player_data[p_index].item_list[2].count += 3;
+						this.player_data[p_index].item_list[3].count += 2;
+						this.player_data[p_index].item_list[4].count += 1;
+						this.player_data[p_index].item_list[5].count += 15;
 					}
 				}
 			}
@@ -474,21 +497,21 @@ public class Game extends JFrame
 		else if(event < 85)
 		{
 			JOptionPane.showMessageDialog(null, "Placeholder for Bandit event");
-			this.player_data.item_list[0].count++;
-			this.player_data.item_list[1].count++;
+			this.player_data[p_index].item_list[0].count++;
+			this.player_data[p_index].item_list[1].count++;
 		}
 		else if(event < 90)
 		{
 			JOptionPane.showMessageDialog(null, "Placeholder for Merchant event");
-			this.player_data.item_list[0].count++;
-			this.player_data.item_list[1].count++;
+			this.player_data[p_index].item_list[0].count++;
+			this.player_data[p_index].item_list[1].count++;
 		}
 		else if(event < 95) 		//Finding 1-2 medicine
 		{
 			JOptionPane.showMessageDialog(null,
 					"You found some valuable medical supplies!\n" +
 					"You gained 2 medicine!");
-			this.player_data.item_list[2].count += 2;
+			this.player_data[p_index].item_list[2].count += 2;
 		}
 		else 		//Good event that gives a surplus of supplies
 		{
@@ -499,22 +522,23 @@ public class Game extends JFrame
 				JOptionPane.showMessageDialog(null,
 						"You had a very succesful foraging session\n"
 						+ "You found 3 Food and 2 Water!");
-				this.player_data.item_list[0].count += 3;
-				this.player_data.item_list[1].count += 2;
+				this.player_data[p_index].item_list[0].count += 3;
+				this.player_data[p_index].item_list[1].count += 2;
 			}
 			else
 			{
 				JOptionPane.showMessageDialog(null,
 						"You had a very succesful foraging session\n"
 						+ "You found 2 Food and 3 Water!");;
-				this.player_data.item_list[0].count += 2;
-				this.player_data.item_list[1].count += 3;
+				this.player_data[p_index].item_list[0].count += 2;
+				this.player_data[p_index].item_list[1].count += 3;
 			}
 		}
 		return;
 	}
 
-	public boolean gameStateCheck(Resources stats, WorldData data)
+	// check if player is dead and if so then skip 
+	public boolean gameStateCheck(Resources stats, WorldData data, int player_index)
 	{
 		if(data.date == data.end_date) 			//Check if the end game ended
 		{
@@ -522,7 +546,7 @@ public class Game extends JFrame
 			return true;
 		}
 		
-		if(stats.health < 5) 		//Player has run out of health
+		if(stats[int player_index].health < 5) 		//Player has run out of health
 		{
 			JOptionPane.showMessageDialog(null, "You have died");
 			
@@ -530,7 +554,7 @@ public class Game extends JFrame
 		}
 		else				//Other checks for the player
 		{ 
-			if(stats.hunger < 20 || stats.hydration < 20 || stats.sanity < 20 || stats.health < 60)
+			if(stats[player_index].hunger < 20 || stats[player_index].hydration < 20 || stats[player_index].sanity < 20 || stats[player_index].health < 60)
 			{
 				JOptionPane.showMessageDialog(null, "You are feeling unwell");
 			}
@@ -543,12 +567,17 @@ public class Game extends JFrame
 		
 		//Initializing all data for game to begin
 		Item[] list = new Item[6];
-		Resources player_stats = new Resources(100, 100, 100, 100, 0, list);
+		Resources[] player_stats = new Resources[];
+		for (int i = 0; i < 4; i++) {
+			player_stats[i] = new Resources(100, 100, 100, 100, 0, list);
+		}
+
 		WorldData data = new WorldData();
 		data.date = 1;
 		data.end_date = 10;
 		data.timer = 60;
 		
 		new Game(player_stats, data).setVisible(true);
+
 	}
 }
