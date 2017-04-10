@@ -70,11 +70,17 @@ class WorldData
 }
 
 
-public class Game extends JFrame
-{
+public class Game extends JFrame implements Runnable {
+	
+	public JFrame frame;
 	final String[] SPECIALTY = {"Medic", "Soldier", "Survival Expert", "Artist", "Engineer"};
-	final int GAME_WIDTH = 400; 		//Width of game frame
-	final int GAME_LENGTH = 500;		//Length of game frame
+	public static final int GAME_WIDTH = 100; 		//Width of game frame
+	public static final int GAME_LENGTH = GAME_WIDTH * 5 / 4;
+	public static final int GAME_SCALE = 4;
+	public static final String NAME = "Game";
+	public static final Dimension DIMENSIONS = new Dimension(GAME_WIDTH * GAME_SCALE, GAME_LENGTH * GAME_SCALE);
+	public static Game game;
+	//Length of game frame
 	Resources player_data; 			//Object that holds all the data the player can manipulate or has direct access to
 	WorldData global_data;			//Object that holds all the global variable data. Date, end date, etc.
 	Font header_font;				//Holds the font style for any headings
@@ -91,8 +97,7 @@ public class Game extends JFrame
 	 *Shows menu options and make it interactable to show inventory or menu options
 	 *This will be the main game frame that will be used
 	 */
-	public Game(Resources stats, WorldData data) 
-	{
+	public Game() {
 		player_data = stats; 			//Constructor variable for player data
 		global_data = data;			//Constructor variable for global data
 		header_font = new Font("Helvetica", Font.BOLD, 18); 		//Style to use for headings of menus or titles
@@ -110,13 +115,42 @@ public class Game extends JFrame
 		statDisplay(stats, data);
 		this.turn_timer = callTimerDisplay(stats, data);
 	}
-
 	
+	public boolean running;
+	public boolean debug = true;
+    public boolean isApplet = false;
+    public GameClient socketClient;
+    public GameServer socketServer;
+	private Thread thread;
+	public synchronized void start() {
+	        running = true;
+
+	        thread = new Thread(this, NAME + "_main");
+	        thread.start();
+	        if (!isApplet) {
+	            if (JOptionPane.showConfirmDialog(this, "Do you want to run the server") == 0) {
+	                socketServer = new GameServer(this);
+	                socketServer.start();
+	            }
+
+	            socketClient = new GameClient(this, "localhost");
+	            socketClient.start();
+	        }
+	    }
+
+	    public synchronized void stop() {
+	        running = false;
+
+	        try {
+	            thread.join();
+	        } catch (InterruptedException e) {
+	            e.printStackTrace();
+	        }
+	    }
 	/*Method that displays all the player's information and current date
 	 *Is called every time a day is incremented
 	 */
-	public void statDisplay(Resources stats, WorldData data)
-	{
+	public void statDisplay(Resources stats, WorldData data) {
 		//Deleting the old display
 		this.remove(this.text_panel);
 		this.remove(this.text);
@@ -145,8 +179,7 @@ public class Game extends JFrame
 	 *Each button has its own Action to make things more manageable
 	 */
 	@SuppressWarnings("serial")
-	public void basicMenuDisplay(Resources stats, WorldData data)
-	{
+	public void basicMenuDisplay(Resources stats, WorldData data) {
 		Timer timer = this.turn_timer; 		//Setting class variable to a local variable to call when using buttons
 		
 		//Button to make player eat food. Does not go over 100 and player cannot eat when not hungry or has no food
@@ -537,18 +570,11 @@ public class Game extends JFrame
 			return true;
 		}
 	}
-	public static void main(String[] args)
-	{
+
+	@Override
+	public void run() {
 		// TODO Auto-generated method stub
 		
-		//Initializing all data for game to begin
-		Item[] list = new Item[6];
-		Resources player_stats = new Resources(100, 100, 100, 100, 0, list);
-		WorldData data = new WorldData();
-		data.date = 1;
-		data.end_date = 10;
-		data.timer = 60;
-		
-		new Game(player_stats, data).setVisible(true);
 	}
+	
 }
