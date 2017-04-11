@@ -7,6 +7,10 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import javax.swing.*; 		//For frames and buttons and such
 
+import main_game.elements.Player;
+import main_game.network.GameClient;
+import main_game.network.GameServer;
+
 /*Class that will define every item in the game
  *Inventory size will be capped at 6 for the time being
  *List of items: Food, Water, Medicine, Knife, Gun, Ammunition
@@ -80,6 +84,7 @@ public class Game extends JFrame implements Runnable {
 	public static final String NAME = "Game";
 	public static final Dimension DIMENSIONS = new Dimension(GAME_WIDTH * GAME_SCALE, GAME_LENGTH * GAME_SCALE);
 	public static Game game;
+	public Player player;
 	//Length of game frame
 	Resources player_data; 			//Object that holds all the data the player can manipulate or has direct access to
 	WorldData global_data;			//Object that holds all the global variable data. Date, end date, etc.
