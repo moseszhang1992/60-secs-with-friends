@@ -2,8 +2,5 @@
 <classpath>
 	<classpathentry kind="src" path="60 Seconds With Friends/src"/>
 	<classpathentry exported="true" kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-	<classpathentry exported="true" kind="lib" path="lib/nadclient-0.1-javadoc.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/nadclient-0.1-sources.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/nadclient-0.1.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
