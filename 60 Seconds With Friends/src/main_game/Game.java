@@ -1,10 +1,28 @@
 package main_game;
 
-import java.util.*;
-import java.util.Timer;
-import java.awt.*; 			//For adding fonts, color, and graphics to frames
+import java.awt.Color;
+import java.awt.Dimension;
+//For adding fonts, color, and graphics to frames
+import java.awt.Font;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Window;
 import java.awt.event.ActionEvent;
-import javax.swing.*; 		//For frames and buttons and such
+import java.awt.image.BufferedImage;
+import java.util.Random;
+import java.util.Timer;
+import java.util.TimerTask;
+
+//For frames and buttons and such
+import javax.swing.AbstractAction;
+import javax.swing.BorderFactory;
+import javax.swing.JButton;
+import javax.swing.JDialog;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JTextArea;
 
 /*Class that will define every item in the game
  *Inventory size will be capped at 6 for the time being
@@ -75,8 +93,8 @@ class WorldData
 public class Game extends JFrame
 {
 	final String[] SPECIALTY = {"Medic", "Soldier", "Survival Expert", "Musician"};
-	final int GAME_WIDTH = 450; 		//Width of game frame
-	final int GAME_LENGTH = 550;		//Length of game frame
+	final int GAME_WIDTH = 1100; // Width of game frame
+	final int GAME_LENGTH = 625; // Length of game frame
 	Resources[] player_data; 			//Object that holds all the data the player can manipulate or has direct access to
 	WorldData global_data;			//Object that holds all the global variable data. Date, end date, etc.
 	int p_index = 0; 
@@ -90,6 +108,10 @@ public class Game extends JFrame
 	Timer turn_timer = new Timer();
 	GridBagConstraints text_layout = new GridBagConstraints(); 		//GridBagConstraint to place the text box on the main frame
 	
+	BufferedImage img;
+
+	JLabel background;
+	
 	/*Class constructor that displays the GUI for the player
 	 *Shows menu options and the current player's resources and world stats
 	 *This will be the main game frame that will be used
@@ -101,17 +123,33 @@ public class Game extends JFrame
 		button_font = new Font("Helvetica", Font.BOLD, 18); 		//Style to use for buttons
 		menu_font = new Font("Georgia", Font.PLAIN, 16);			//Style to use for menu options
 		text_font = new Font("Helvetica", Font.PLAIN, 16);			//Style to use for rest of game
-		
-		//Initializing the Frame for the game
-		setSize(GAME_WIDTH, GAME_LENGTH); 		//Set size of frame
-		setTitle("60 Seconds With Friends: WIP"); 		//Header of frame
-		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); 		//Exits program when frame is closed
-		setResizable(false); 		//so player can't resize the frame
+		/*
+		 * try {
+		 * 
+		 * // Be aware of image path -- will not work on other computers File
+		 * myImg = new
+		 * File("C:/Users/Nick/Pictures/apocalypse_by_pierremassine.png"); img =
+		 * ImageIO.read(myImg); } catch(Exception e){ e.printStackTrace(); }
+		 * 
+		 * this.setContentPane(new JLabel(new ImageIcon(img)));
+		 */
+		this.pack();
+        this.setLocationRelativeTo(null);
+		this.setVisible(true);
+
+		// Initializing the Frame for the game
+		setSize(GAME_WIDTH, GAME_LENGTH); // Set size of frame
+		setTitle("60 Seconds With Friends: WIP"); // Header of frame
+		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); // Exits program when
+														// frame is closed
+
+		setResizable(true); // so player can't resize the frame
 		setLayout(new GridBagLayout());
-		
 		basicMenuDisplay();
 		statDisplay();
 		this.turn_timer = callTimerDisplay();
+
+
 	}
 
 	
@@ -126,7 +164,9 @@ public class Game extends JFrame
 		this.validate();
 		this.repaint();
 		
+		JPanel blank_text_panel = new JPanel();
 		this.text_panel = new JPanel();
+		this.text_panel.setBorder(BorderFactory.createMatteBorder(5, 5, 5, 5, Color.BLACK));
 		this.text = new JTextArea("Day: " + this.global_data.date + "/" + this.global_data.end_date + "\n" +
 								  "Health: " + this.player_data[p_index].health + "\n" + 
 								  "Hunger: " + this.player_data[p_index].hunger + "\n" + 
@@ -136,9 +176,16 @@ public class Game extends JFrame
 								  "Player: " + (p_index + 1));
 		this.text.setFont(text_font);
 		this.text_panel.add(this.text);
-		this.text_layout.gridx = 0;
+		this.text_layout.gridx = 1;
 		this.text_layout.gridy = 0;
 		add(this.text_panel, this.text_layout);
+
+		this.text_layout.gridx = 2;
+		this.text_layout.gridy = 0;
+		add(blank_text_panel, this.text_layout);
+		blank_text_panel.setPreferredSize(new Dimension(50, 100));
+		blank_text_panel.setBackground(new Color(0, 0, 0, 0));
+
 		this.setVisible(true);
 		this.validate();
 		this.repaint();
@@ -177,7 +224,8 @@ public class Game extends JFrame
 				}
 			});
 		eat_button.setFont(button_font);
-		
+		eat_button.setBorder(BorderFactory.createMatteBorder(3, 3, 3, 3, Color.BLUE));
+
 		//Button to make player drink water. Does not go over 100 and player cannot drink when not thirsty or has no water
 		JButton drink_button = new JButton(new AbstractAction("Drink")
 			{
@@ -205,7 +253,8 @@ public class Game extends JFrame
 				}
 			});
 		drink_button.setFont(button_font);
-		
+		drink_button.setBorder(BorderFactory.createMatteBorder(3, 3, 3, 3, Color.BLUE));
+
 		//Button to make player meditate. Takes some food and water but restores a bit of sanity. Also takes a whole day
 		JButton meditate_button = new JButton(new AbstractAction("Meditate")
 			{
@@ -226,7 +275,8 @@ public class Game extends JFrame
 				}
 			});
 		meditate_button.setFont(button_font);
-		
+		meditate_button.setBorder(BorderFactory.createMatteBorder(3, 3, 3, 3, Color.BLUE));
+
 		//Button to make the player forage. They go around and add to the inventory. Can take damage and stuff during this
 		JButton forage_button = new JButton(new AbstractAction("Forage")
 			{
@@ -246,7 +296,8 @@ public class Game extends JFrame
 				}
 			});
 		forage_button.setFont(button_font);
-		
+		forage_button.setBorder(BorderFactory.createMatteBorder(3, 3, 3, 3, Color.BLUE));
+
 		//Button that lets a player steal from another one
 		JButton take_button = new JButton(new AbstractAction("Take")
 		{		
@@ -324,7 +375,8 @@ public class Game extends JFrame
 			}
 		});
 		take_button.setFont(button_font);
-		
+		take_button.setBorder(BorderFactory.createMatteBorder(3, 3, 3, 3, Color.BLUE));
+
 		//Button that lets player give items to another player
 		JButton give_button = new JButton(new AbstractAction("Give")
 		{
@@ -369,7 +421,8 @@ public class Game extends JFrame
 			}
 		});
 		give_button.setFont(button_font);
-		
+		give_button.setBorder(BorderFactory.createMatteBorder(3, 3, 3, 3, Color.BLUE));
+
 		//Button that lets players heal other players
 		JButton heal_button = new JButton(new AbstractAction("Heal")
 		{
@@ -412,7 +465,8 @@ public class Game extends JFrame
 			
 		});
 		heal_button.setFont(button_font);
-		
+		heal_button.setBorder(BorderFactory.createMatteBorder(3, 3, 3, 3, Color.BLUE));
+
 		//Button that displays the player's inventory
 		JButton inventory_button = new JButton(new AbstractAction("Inventory")
 			{
@@ -435,12 +489,23 @@ public class Game extends JFrame
 				}
 			});
 		inventory_button.setFont(button_font);
+		inventory_button.setBorder(BorderFactory.createMatteBorder(3, 3, 3, 3, Color.BLUE));
 
 		//Adding each button to the main game frame with setting the text button layout
 		//Incrementing the gridy to make buttons stack on top of each other
+		JPanel blank_panel = new JPanel();
+		blank_panel.setPreferredSize(new Dimension(50, 50));
+		blank_panel.setBackground(new Color(0, 0, 0, 0));
 		this.text_layout.gridx = 4;
 		this.text_layout.gridy = 5;
-		this.text_layout.fill = GridBagConstraints.HORIZONTAL; 		//Make all buttons fill the same space
+		add(blank_panel, this.text_layout);
+
+		this.text_layout.gridx = 4;
+		this.text_layout.gridy = 6;
+		this.text_layout.fill = GridBagConstraints.HORIZONTAL; // Make all
+																// buttons fill
+																// the same
+																// space
 		add(eat_button, this.text_layout);
 		this.text_layout.gridy++;
 		add(drink_button, this.text_layout);
@@ -506,13 +571,28 @@ public class Game extends JFrame
 					
 					//Initializes and creates a new timer panel
 					timer_panel = new JPanel();
-					timer_text = new JTextArea("Timer: " + Integer.toString(global_data.timer));
+				timer_panel.setBorder(BorderFactory.createMatteBorder(7, 7, 7, 7, Color.BLACK));
+
+
+				timer_text = new JTextArea("Timer: " + Integer.toString(global_data.timer));
 					global_data.timer--;
 					text_layout.gridx = 4;
 					text_layout.gridy = 0;
 					text_layout.fill = GridBagConstraints.HORIZONTAL;
 					text_layout.fill = GridBagConstraints.VERTICAL;
 					timer_text.setFont(text_font);
+
+				if (global_data.timer > 30) {
+					timer_text.setBackground(Color.GREEN);
+					timer_panel.setBackground(Color.GREEN);
+				} else if (global_data.timer > 15) {
+					timer_text.setBackground(Color.YELLOW);
+					timer_panel.setBackground(Color.YELLOW);
+				} else {
+					timer_text.setBackground(Color.RED);
+					timer_panel.setBackground(Color.RED);
+				}
+
 					timer_panel.add(timer_text);
 					add(timer_panel, text_layout);
 					setVisible(true);
@@ -554,6 +634,8 @@ public class Game extends JFrame
 	 */
 	public void nextTurnMethod()
 	{
+
+		// TODO: IMPLEMENT RANDOM NATURAL EVENT OCCURRENCES AND CONTINUE TURN
 		if(p_index == (global_data.player_count - 1)) 			//Check if last player is playing or not
 		{
 			global_data.date++;		//Increment day for other players
@@ -564,6 +646,13 @@ public class Game extends JFrame
 			p_index++; 				//Increment to the next player
 		}
 		
+		// Random natural event with 8% chance of something happening each turn
+		Random rand = new Random();
+		int randVal = rand.nextInt(100);
+		if (randVal >= 0 && randVal < 100) {
+			randNaturalEventGenerator();
+		}
+
 		global_data.timer = 60;
 		JOptionPane.showMessageDialog(null, "It is Player " + (p_index + 1) + "'s turn to play \n");
 		statDisplay();
@@ -1102,6 +1191,108 @@ public class Game extends JFrame
 		}
 	}
 	
+	/*****************
+	 * Natural Event Methods: Random Occurrences that affect all players
+	 ********************************/
+	// Simple method to check to choose which natural event should occur
+	void randNaturalEventGenerator() {
+
+		Random rand = new Random();
+		int event = rand.nextInt(3);
+
+		switch (event) {
+		case 0:
+			earthquake();
+			break;
+		case 1:
+			drought();
+			break;
+		case 2:
+			asteroidStrike();
+			break;
+		default:
+			earthquake();
+			break;
+
+		}
+	}
+
+	// TODO: IMPLEMENT THESE RANDOM METHODS
+	public void earthquake() {
+
+		// adjust fields for each player here
+		for (int i = 0; i < this.global_data.player_count; i++) {
+			this.player_data[i].health -= 12;
+			this.player_data[i].hunger -= 5;
+			this.player_data[i].sanity -= 10;
+
+		}
+
+		/*
+		 * try {
+		 * 
+		 * // Be aware of image path -- will not work on other computers File
+		 * myImg = new
+		 * File("C:/Users/Nick/Pictures/Saved Pictures/earthquake.png"); img =
+		 * ImageIO.read(myImg); } catch (Exception e) { e.printStackTrace(); }
+		 * 
+		 * this.setContentPane(new JLabel(new ImageIcon(img))); statDisplay();
+		 * basicMenuDisplay(); callTimerDisplay();
+		 */
+
+		JOptionPane.showMessageDialog(null, "The surrounding area experienced an earthquake!\n");
+
+	}
+
+	public void drought() {
+
+		// adjust fields for each player here
+		for (int i = 0; i < this.global_data.player_count; i++) {
+			this.player_data[i].health -= 2;
+			this.player_data[i].hunger -= 5;
+			this.player_data[i].sanity -= 2;
+			this.player_data[i].hydration -= 12;
+		}
+
+		/*
+		 * try {
+		 * 
+		 * // Be aware of image path -- will not work on other computers File
+		 * myImg = new
+		 * File("C:/Users/Nick/Pictures/Saved Pictures/drought.png"); img =
+		 * ImageIO.read(myImg); } catch (Exception e) { e.printStackTrace(); }
+		 * 
+		 * this.setContentPane(new JLabel(new ImageIcon(img))); statDisplay();
+		 * basicMenuDisplay(); callTimerDisplay();
+		 */
+
+		JOptionPane.showMessageDialog(null, "There was a drought that recently occurred!\n");
+
+	}
+
+	public void asteroidStrike() {
+
+		// adjust fields for each player here
+		for (int i = 0; i < this.global_data.player_count; i++) {
+			this.player_data[i].health -= 20;
+			this.player_data[i].hunger -= 5;
+		}
+		/*
+		 * try {
+		 * 
+		 * // Be aware of image path -- will not work on other computers File
+		 * myImg = new
+		 * File("C:/Users/Nick/Pictures/Saved Pictures/asteroidStrike.png"); img
+		 * = ImageIO.read(myImg); } catch (Exception e) { e.printStackTrace(); }
+		 * 
+		 * this.setContentPane(new JLabel(new ImageIcon(img))); statDisplay();
+		 * basicMenuDisplay(); callTimerDisplay();
+		 */
+
+		JOptionPane.showMessageDialog(null, "Asteroids have broke the atmosphere and impacted your location!\n");
+
+	}
+
 	public static void main(String[] args)
 	{
 		//Initializing all data for game to begin
