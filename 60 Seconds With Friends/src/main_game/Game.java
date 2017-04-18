@@ -9,13 +9,16 @@ import java.awt.GridBagLayout;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.image.BufferedImage;
+import java.io.File;
 import java.util.Random;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import javax.imageio.ImageIO;
 //For frames and buttons and such
 import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
@@ -123,16 +126,18 @@ public class Game extends JFrame
 		button_font = new Font("Helvetica", Font.BOLD, 18); 		//Style to use for buttons
 		menu_font = new Font("Georgia", Font.PLAIN, 16);			//Style to use for menu options
 		text_font = new Font("Helvetica", Font.PLAIN, 16);			//Style to use for rest of game
-		/*
-		 * try {
-		 * 
-		 * // Be aware of image path -- will not work on other computers File
-		 * myImg = new
-		 * File("C:/Users/Nick/Pictures/apocalypse_by_pierremassine.png"); img =
-		 * ImageIO.read(myImg); } catch(Exception e){ e.printStackTrace(); }
-		 * 
-		 * this.setContentPane(new JLabel(new ImageIcon(img)));
-		 */
+
+		try {
+
+			// Be aware of image path -- will not work on other computers
+			File myImg = new File("C:/Users/Nick/Pictures/apocalypse_by_pierremassine.png");
+			img = ImageIO.read(myImg);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		this.setContentPane(new JLabel(new ImageIcon(img)));
+		 
 		this.pack();
         this.setLocationRelativeTo(null);
 		this.setVisible(true);
@@ -649,7 +654,7 @@ public class Game extends JFrame
 		// Random natural event with 8% chance of something happening each turn
 		Random rand = new Random();
 		int randVal = rand.nextInt(100);
-		if (randVal >= 0 && randVal < 100) {
+		if (randVal >= 0 && randVal < 6) {
 			randNaturalEventGenerator();
 		}
 
