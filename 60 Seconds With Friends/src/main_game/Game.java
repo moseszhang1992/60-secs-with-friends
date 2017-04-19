@@ -96,8 +96,8 @@ class WorldData
 public class Game extends JFrame
 {
 	final String[] SPECIALTY = {"Medic", "Soldier", "Survival Expert", "Musician"};
-	final int GAME_WIDTH = 1100; // Width of game frame
-	final int GAME_LENGTH = 625; // Length of game frame
+	final int GAME_WIDTH = 800; // Width of game frame
+	final int GAME_LENGTH = 500; // Length of game frame
 	Resources[] player_data; 			//Object that holds all the data the player can manipulate or has direct access to
 	WorldData global_data;			//Object that holds all the global variable data. Date, end date, etc.
 	int p_index = 0; 
@@ -110,9 +110,8 @@ public class Game extends JFrame
 	JTextArea timer_text = new JTextArea();
 	Timer turn_timer = new Timer();
 	GridBagConstraints text_layout = new GridBagConstraints(); 		//GridBagConstraint to place the text box on the main frame
-	
 	BufferedImage img;
-
+	ImageIcon imgIcon;
 	JLabel background;
 	
 	/*Class constructor that displays the GUI for the player
@@ -127,20 +126,7 @@ public class Game extends JFrame
 		menu_font = new Font("Georgia", Font.PLAIN, 16);			//Style to use for menu options
 		text_font = new Font("Helvetica", Font.PLAIN, 16);			//Style to use for rest of game
 
-		try {
-
-			// Be aware of image path -- will not work on other computers
-			File myImg = new File("C:/Users/Nick/Pictures/apocalypse_by_pierremassine.png");
-			img = ImageIO.read(myImg);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-
-		this.setContentPane(new JLabel(new ImageIcon(img)));
-		 
-		this.pack();
-        this.setLocationRelativeTo(null);
-		this.setVisible(true);
+		setBackgroundApocaImg();
 
 		// Initializing the Frame for the game
 		setSize(GAME_WIDTH, GAME_LENGTH); // Set size of frame
@@ -188,7 +174,7 @@ public class Game extends JFrame
 		this.text_layout.gridx = 2;
 		this.text_layout.gridy = 0;
 		add(blank_text_panel, this.text_layout);
-		blank_text_panel.setPreferredSize(new Dimension(50, 100));
+		blank_text_panel.setPreferredSize(new Dimension(25, 25));
 		blank_text_panel.setBackground(new Color(0, 0, 0, 0));
 
 		this.setVisible(true);
@@ -499,7 +485,7 @@ public class Game extends JFrame
 		//Adding each button to the main game frame with setting the text button layout
 		//Incrementing the gridy to make buttons stack on top of each other
 		JPanel blank_panel = new JPanel();
-		blank_panel.setPreferredSize(new Dimension(50, 50));
+		blank_panel.setPreferredSize(new Dimension(25, 25));
 		blank_panel.setBackground(new Color(0, 0, 0, 0));
 		this.text_layout.gridx = 4;
 		this.text_layout.gridy = 5;
@@ -654,8 +640,12 @@ public class Game extends JFrame
 		// Random natural event with 8% chance of something happening each turn
 		Random rand = new Random();
 		int randVal = rand.nextInt(100);
-		if (randVal >= 0 && randVal < 6) {
+		if (randVal >= 0 && randVal < 8) {
 			randNaturalEventGenerator();
+		}
+		// change back to apocalapyse background if not changed
+		else {
+			setBackgroundApocaImg();
 		}
 
 		global_data.timer = 60;
@@ -1220,8 +1210,33 @@ public class Game extends JFrame
 			break;
 
 		}
+
 	}
 
+	private void setBackgroundApocaImg() {
+
+		try {
+
+			// Be aware of image path -- will not work on other computers
+			File myImg = new File("C:/Users/Nick/Pictures/Saved Pictures/apocalypse_by_pierremassine.png");
+			img = ImageIO.read(myImg);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		imgIcon = new ImageIcon(img);
+		if (background == null) {
+			background = new JLabel(imgIcon);
+			this.setContentPane(background);
+		} else {
+			background.setIcon(imgIcon);
+		}
+
+		this.pack();
+		this.setLocationRelativeTo(null);
+		this.setVisible(true);
+
+	}
 	// TODO: IMPLEMENT THESE RANDOM METHODS
 	public void earthquake() {
 
@@ -1233,17 +1248,22 @@ public class Game extends JFrame
 
 		}
 
-		/*
-		 * try {
-		 * 
-		 * // Be aware of image path -- will not work on other computers File
-		 * myImg = new
-		 * File("C:/Users/Nick/Pictures/Saved Pictures/earthquake.png"); img =
-		 * ImageIO.read(myImg); } catch (Exception e) { e.printStackTrace(); }
-		 * 
-		 * this.setContentPane(new JLabel(new ImageIcon(img))); statDisplay();
-		 * basicMenuDisplay(); callTimerDisplay();
-		 */
+		try {
+
+			// Be aware of image path -- will not work on other computers
+			File myImg = new File("C:/Users/Nick/Pictures/Saved Pictures/earthquake.png");
+			img = ImageIO.read(myImg);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		imgIcon = new ImageIcon(img);
+		background.setIcon(imgIcon);
+		this.validate();
+		this.repaint();
+		this.pack();
+        this.setLocationRelativeTo(null);
+		this.setVisible(true);
 
 		JOptionPane.showMessageDialog(null, "The surrounding area experienced an earthquake!\n");
 
@@ -1259,17 +1279,22 @@ public class Game extends JFrame
 			this.player_data[i].hydration -= 12;
 		}
 
-		/*
-		 * try {
-		 * 
-		 * // Be aware of image path -- will not work on other computers File
-		 * myImg = new
-		 * File("C:/Users/Nick/Pictures/Saved Pictures/drought.png"); img =
-		 * ImageIO.read(myImg); } catch (Exception e) { e.printStackTrace(); }
-		 * 
-		 * this.setContentPane(new JLabel(new ImageIcon(img))); statDisplay();
-		 * basicMenuDisplay(); callTimerDisplay();
-		 */
+		try {
+
+			// Be aware of image path -- will not work on other computers
+			File myImg = new File("C:/Users/Nick/Pictures/Saved Pictures/drought.png");
+			img = ImageIO.read(myImg);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		imgIcon = new ImageIcon(img);
+		background.setIcon(imgIcon);
+		this.validate();
+		this.repaint();
+		this.pack();
+		this.setLocationRelativeTo(null);
+		this.setVisible(true);
 
 		JOptionPane.showMessageDialog(null, "There was a drought that recently occurred!\n");
 
@@ -1282,17 +1307,23 @@ public class Game extends JFrame
 			this.player_data[i].health -= 20;
 			this.player_data[i].hunger -= 5;
 		}
-		/*
-		 * try {
-		 * 
-		 * // Be aware of image path -- will not work on other computers File
-		 * myImg = new
-		 * File("C:/Users/Nick/Pictures/Saved Pictures/asteroidStrike.png"); img
-		 * = ImageIO.read(myImg); } catch (Exception e) { e.printStackTrace(); }
-		 * 
-		 * this.setContentPane(new JLabel(new ImageIcon(img))); statDisplay();
-		 * basicMenuDisplay(); callTimerDisplay();
-		 */
+
+		try {
+
+			// Be aware of image path -- will not work on other computers
+			File myImg = new File("C:/Users/Nick/Pictures/Saved Pictures/asteroidStrike.png");
+			img = ImageIO.read(myImg);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		imgIcon = new ImageIcon(img);
+		background.setIcon(imgIcon);
+		this.validate();
+		this.repaint();
+		this.pack();
+		this.setLocationRelativeTo(null);
+		this.setVisible(true);
 
 		JOptionPane.showMessageDialog(null, "Asteroids have broke the atmosphere and impacted your location!\n");
 
