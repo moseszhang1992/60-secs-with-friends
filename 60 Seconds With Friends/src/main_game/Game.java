@@ -1,21 +1,23 @@
 package main_game;
 
+//For adding fonts, color, and graphics to frames
+//For frames and buttons and such
 import java.awt.Color;
 import java.awt.Dimension;
-//For adding fonts, color, and graphics to frames
 import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.Random;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import javax.swing.*;
 import javax.imageio.ImageIO;
-//For frames and buttons and such
 import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
@@ -25,7 +27,11 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JSlider;
 import javax.swing.JTextArea;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
+
 
 /*Class that will define every item in the game
  *Inventory size will be capped at 6 for the time being
@@ -91,6 +97,20 @@ class WorldData
 	int player_count;
 }
 
+class customButton extends JButton {
+	String img;
+	String pressedimg;
+
+	public customButton(String img, String pressedimg) {
+		super();
+
+		this.setIcon(new ImageIcon(img));
+		this.setPressedIcon(new ImageIcon(pressedimg));
+		this.setPreferredSize(new Dimension(160, 57));
+		this.setSize(new Dimension(160, 57));
+		this.setBackground(Color.ORANGE);
+	}
+}
 
 @SuppressWarnings("serial")
 public class Game extends JFrame
@@ -114,6 +134,21 @@ public class Game extends JFrame
 	ImageIcon imgIcon;
 	JLabel background;
 	
+	/* Menu Assets */
+	JButton start = new customButton("buttons/start.PNG", "buttons/start_pressed.PNG");
+	JButton settings = new customButton("buttons/settings.PNG", "buttons/settings_pressed.PNG");
+	JButton help = new customButton("buttons/help.PNG", "buttons/help_pressed.PNG");
+	JSlider days = new JSlider();
+	JSlider playernum = new JSlider();
+	JButton returnbut = new customButton("buttons/return.PNG", "buttons/return_pressed.PNG");
+	JLabel days_label1 = new JLabel();
+	JLabel days_label2 = new JLabel();
+	JLabel playernum_label1 = new JLabel();
+	JLabel playernum_label2 = new JLabel();
+	JTextArea helpText = new JTextArea();
+
+	/* End of Menu Assets */
+
 	/*Class constructor that displays the GUI for the player
 	 *Shows menu options and the current player's resources and world stats
 	 *This will be the main game frame that will be used
@@ -129,20 +164,182 @@ public class Game extends JFrame
 		setBackgroundApocaImg();
 
 		// Initializing the Frame for the game
-		setSize(GAME_WIDTH, GAME_LENGTH); // Set size of frame
 		setTitle("60 Seconds With Friends: WIP"); // Header of frame
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); // Exits program when
 														// frame is closed
 
 		setResizable(true); // so player can't resize the frame
 		setLayout(new GridBagLayout());
-		basicMenuDisplay();
-		statDisplay();
-		this.turn_timer = callTimerDisplay();
-
+		initializeMenu();
+		setSize(GAME_WIDTH, GAME_LENGTH); // Set size of frame
 
 	}
 
+	public void initializeMenu() {
+		text_layout.ipady = 10;
+		this.text_layout.gridx = 0;
+		this.text_layout.gridy = 0;
+		this.add(start, this.text_layout);
+		this.text_layout.gridy = 1;
+		this.add(settings, this.text_layout);
+		this.text_layout.gridy = 2;
+		this.add(help, this.text_layout);
+
+		start.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				hideMenu();
+
+				basicMenuDisplay();
+				statDisplay();
+				turn_timer = callTimerDisplay();
+			}
+
+		});
+
+		settings.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				hideMenu();
+				showSettings();
+			}
+
+		});
+		help.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				hideMenu();
+				showHelp();
+			}
+
+		});
+
+		/* initialize sliders */
+		days_label1.setText("Game Length");
+		days_label2.setText("30 Days");
+		playernum_label1.setText("Number of Players");
+		;
+		playernum_label2.setText("4");
+
+		days_label1.setFont(button_font);
+		days_label2.setFont(button_font);
+		playernum_label1.setFont(button_font);
+		playernum_label2.setFont(button_font);
+
+		days.setMaximum(90);
+		days.setMinimum(14);
+		days.setValue(30);
+		days.setSize(190, 20);
+		days.setToolTipText("The number of days that the game will last");
+		days.addChangeListener(new ChangeListener() {
+			@Override
+			public void stateChanged(ChangeEvent e) {
+				days_label2.setText(days.getValue() + " Days");
+				global_data.end_date = days.getValue();
+			}
+
+		});
+		playernum.setMaximum(4);
+		playernum.setMinimum(2);
+		playernum.setValue(4);
+		playernum.setSize(190, 20);
+		days.setToolTipText("The number of players in the game");
+		playernum.addChangeListener(new ChangeListener() {
+			@Override
+			public void stateChanged(ChangeEvent e) {
+				playernum_label2.setText(playernum.getValue() + "");
+				global_data.player_count = playernum.getValue();
+			}
+
+		});
+
+		days.setVisible(false);
+		days_label1.setVisible(false);
+		days_label2.setVisible(false);
+		playernum.setVisible(false);
+		playernum_label1.setVisible(false);
+		playernum_label2.setVisible(false);
+		returnbut.setVisible(false);
+
+		this.text_layout.gridx = 0;
+		this.text_layout.gridy = 0;
+		this.add(days_label1, this.text_layout);
+		this.text_layout.gridy = 1;
+		this.add(days, this.text_layout);
+		this.text_layout.gridy = 2;
+		this.add(days_label2, this.text_layout);
+		this.text_layout.gridy = 3;
+		this.add(playernum_label1, this.text_layout);
+		this.text_layout.gridy = 4;
+		this.add(playernum, this.text_layout);
+		this.text_layout.gridy = 5;
+		this.add(playernum_label2, this.text_layout);
+		this.text_layout.gridy = 6;
+		this.add(returnbut, this.text_layout);
+
+		returnbut.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				hideSettings();
+				hideHelp();
+				showMenu();
+			}
+		});
+		/* initialize help text */
+		helpText.setFont(text_font);
+		helpText.setText("Apocalyse is dangerous! Survive to the final day with the help of your friends (or don't)!");
+		helpText.setVisible(false);
+		helpText.setSize(200, 300);
+		this.text_layout.gridy = 0;
+		this.add(helpText, this.text_layout);
+	}
+
+	public void showMenu() {
+		start.setVisible(true);
+		settings.setVisible(true);
+		help.setVisible(true);
+
+	}
+
+	public void hideMenu() {
+		start.setVisible(false);
+		settings.setVisible(false);
+		help.setVisible(false);
+	}
+
+	/*
+	 * Method that displays all the player's information and current date Is
+	 * called every time a day is incremented
+	 */
+	public void showSettings() {
+		days.setVisible(true);
+		days_label1.setVisible(true);
+		days_label2.setVisible(true);
+		playernum.setVisible(true);
+		playernum_label1.setVisible(true);
+		playernum_label2.setVisible(true);
+		returnbut.setVisible(true);
+	}
+
+	public void hideSettings() {
+		days.setVisible(false);
+		days_label1.setVisible(false);
+		days_label2.setVisible(false);
+		playernum.setVisible(false);
+		playernum_label1.setVisible(false);
+		playernum_label2.setVisible(false);
+		returnbut.setVisible(false);
+	}
+
+	public void showHelp() {
+		helpText.setVisible(true);
+		returnbut.setVisible(true);
+	}
+
+	public void hideHelp() {
+		helpText.setVisible(false);
+		returnbut.setVisible(false);
+	}
 	
 	/*Method that displays all the player's information and current date
 	 *Is called every time a day is incremented
