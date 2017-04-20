@@ -640,7 +640,7 @@ public class Game extends JFrame
 		// Random natural event with 8% chance of something happening each turn
 		Random rand = new Random();
 		int randVal = rand.nextInt(100);
-		if (randVal >= 0 && randVal < 100) {
+		if (randVal >= 0 && randVal < 8) {
 			randNaturalEventGenerator();
 		}
 		// change back to apocalapyse background if not changed
