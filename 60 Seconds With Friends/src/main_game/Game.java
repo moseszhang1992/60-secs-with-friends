@@ -1460,7 +1460,7 @@ public class Game extends JFrame
 		try {
 
 			// Be aware of image path -- will not work on other computers
-			File myImg = new File("C:/Users/Nick/Pictures/Saved Pictures/apocalypse_by_pierremassine.png");
+			File myImg = new File("apocalypse_by_pierremassine.png");
 			img = ImageIO.read(myImg);
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -1493,7 +1493,7 @@ public class Game extends JFrame
 		try {
 
 			// Be aware of image path -- will not work on other computers
-			File myImg = new File("C:/Users/Nick/Pictures/Saved Pictures/earthquake.png");
+			File myImg = new File("earthquake.png");
 			img = ImageIO.read(myImg);
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -1524,7 +1524,7 @@ public class Game extends JFrame
 		try {
 
 			// Be aware of image path -- will not work on other computers
-			File myImg = new File("C:/Users/Nick/Pictures/Saved Pictures/drought.png");
+			File myImg = new File("drought.png");
 			img = ImageIO.read(myImg);
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -1553,7 +1553,7 @@ public class Game extends JFrame
 		try {
 
 			// Be aware of image path -- will not work on other computers
-			File myImg = new File("C:/Users/Nick/Pictures/Saved Pictures/asteroidStrike.png");
+			File myImg = new File("asteroidStrike.png");
 			img = ImageIO.read(myImg);
 		} catch (Exception e) {
 			e.printStackTrace();
