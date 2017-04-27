@@ -7,6 +7,7 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.Insets;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -116,8 +117,8 @@ class customButton extends JButton {
 public class Game extends JFrame
 {
 	final String[] SPECIALTY = {"Medic", "Soldier", "Survival Expert", "Musician"};
-	final int GAME_WIDTH = 800; // Width of game frame
-	final int GAME_LENGTH = 500; // Length of game frame
+	final int GAME_WIDTH = 1000; // Width of game frame
+	final int GAME_LENGTH = 650; // Length of game frame
 	Resources[] player_data; 			//Object that holds all the data the player can manipulate or has direct access to
 	WorldData global_data;			//Object that holds all the global variable data. Date, end date, etc.
 	int p_index = 0; 
@@ -172,7 +173,6 @@ public class Game extends JFrame
 		setLayout(new GridBagLayout());
 		initializeMenu();
 		setSize(GAME_WIDTH, GAME_LENGTH); // Set size of frame
-
 	}
 
 	public void initializeMenu() {
@@ -226,8 +226,8 @@ public class Game extends JFrame
 		playernum_label1.setFont(button_font);
 		playernum_label2.setFont(button_font);
 
-		days.setMaximum(90);
-		days.setMinimum(14);
+		days.setMaximum(30);
+		days.setMinimum(7);
 		days.setValue(30);
 		days.setSize(190, 20);
 		days.setToolTipText("The number of days that the game will last");
@@ -239,7 +239,7 @@ public class Game extends JFrame
 			}
 
 		});
-		playernum.setMaximum(4);
+		playernum.setMaximum(8);
 		playernum.setMinimum(2);
 		playernum.setValue(4);
 		playernum.setSize(190, 20);
@@ -287,7 +287,27 @@ public class Game extends JFrame
 		});
 		/* initialize help text */
 		helpText.setFont(text_font);
-		helpText.setText("Apocalyse is dangerous! Survive to the final day with the help of your friends (or don't)!");
+		helpText.setText("After an experiment gone horribly wrong, the government has evacuated everyone to shelters all across the country.\n"
+				+ "You and a few of your friends all have been sent into these bunkers left to surive with meager and fastly depleting \n"
+				+ "resources. You must combat the elements and the clock, and maybe even your fellow players in order to...\n"
+				+ "SURVIVE\n\n"
+				+ "----------------------------------------------------------------------Instructions"
+				+ "----------------------------------------------------------------------\n"
+				+ "1. Try to survive until the last day.\n"
+				+ "2. Conserve your health, hydration, and sanity to remain healthy.\n"
+				+ "3. Work with (or against) your fellow players to increase your chances of survival\n\n"
+				+ "Eat - Use 1 Food to gain 10 Hunger\n"
+				+ "Drink - Use 1 Water to gain 10 Hydration\n"
+				+ "Relax - Take a day to restore some sanity\n"
+				+ "Forage - Take a day to go outside and gather resources\n"
+				+ "Take - Take a day and attempt to take an item from another player\n"
+				+ "Give - Give any amount of resources to another player\n"
+				+ "Heal - Use 1 medicine to restore 10 health to another player\n"
+				+ "Inventory - Check what items you currently own\n\n"
+				+ "Survival Expert - An expert at foraging. Gains an increased chance at finding resources during Forage\n"
+				+ "Soldier - An expert at combat. Gains an extra bonus when fighting with knives or guns\n"
+				+ "Medic - An expert at healing. Gains a big bonus when healing other players\n"
+				+ "Musician - An expert at music. Gains special Relax which boosts sanity of the entire group");
 		helpText.setVisible(false);
 		helpText.setSize(200, 300);
 		this.text_layout.gridy = 0;
@@ -354,7 +374,6 @@ public class Game extends JFrame
 		
 		JPanel blank_text_panel = new JPanel();
 		this.text_panel = new JPanel();
-		this.text_panel.setBorder(BorderFactory.createMatteBorder(5, 5, 5, 5, Color.BLACK));
 		this.text = new JTextArea("Day: " + this.global_data.date + "/" + this.global_data.end_date + "\n" +
 								  "Health: " + this.player_data[p_index].health + "\n" + 
 								  "Hunger: " + this.player_data[p_index].hunger + "\n" + 
@@ -366,7 +385,9 @@ public class Game extends JFrame
 		this.text_panel.add(this.text);
 		this.text_layout.gridx = 1;
 		this.text_layout.gridy = 0;
+		this.text_layout.insets = new Insets(-200,150,-100,50);
 		add(this.text_panel, this.text_layout);
+		this.text_panel.setBorder(BorderFactory.createLineBorder(Color.BLACK, 5));
 
 		this.text_layout.gridx = 2;
 		this.text_layout.gridy = 0;
@@ -444,7 +465,7 @@ public class Game extends JFrame
 		drink_button.setBorder(BorderFactory.createMatteBorder(3, 3, 3, 3, Color.BLUE));
 
 		//Button to make player meditate. Takes some food and water but restores a bit of sanity. Also takes a whole day
-		JButton meditate_button = new JButton(new AbstractAction("Meditate")
+		JButton meditate_button = new JButton(new AbstractAction("Relax")
 			{
 				@Override
 				public void actionPerformed(ActionEvent e)
@@ -452,13 +473,26 @@ public class Game extends JFrame
 					turn_timer.cancel(); 		//Stops the timer from running
 					turn_timer.purge(); 		//Deletes the old timer cache
 					
-					//Meditate to gain sanity and lose a bit of hunger and health
-					JOptionPane.showMessageDialog(null, "You meditated");
-					player_data[p_index].sanity += 10;
-					player_data[p_index].hunger -= 5;
-					player_data[p_index].hydration -= 5;
-					player_data[p_index].health += 10;
-					
+					if(player_data[p_index].specialty == 3)
+					{
+						JOptionPane.showMessageDialog(null, "You spend the night relaxing and playing music.\n" +
+														"Your playing boosts morale for the group.");
+						for(int i = 0; i < global_data.player_count; i++)
+						{
+							player_data[i].sanity += 20;
+						}
+						player_data[p_index].hunger -= 10;
+						player_data[p_index].hydration -= 10;
+					}
+					else
+					{
+						//Meditate to gain sanity and lose a bit of hunger and health
+						JOptionPane.showMessageDialog(null, "You take the day off for some rest and relaxation");
+						player_data[p_index].sanity += 10;
+						player_data[p_index].hunger -= 5;
+						player_data[p_index].hydration -= 5;
+						player_data[p_index].health -= 50;
+					}
 					nextTurnMethod();
 				}
 			});
@@ -682,18 +716,15 @@ public class Game extends JFrame
 		//Adding each button to the main game frame with setting the text button layout
 		//Incrementing the gridy to make buttons stack on top of each other
 		JPanel blank_panel = new JPanel();
-		blank_panel.setPreferredSize(new Dimension(25, 25));
+		blank_panel.setPreferredSize(new Dimension(5, 5));
 		blank_panel.setBackground(new Color(0, 0, 0, 0));
 		this.text_layout.gridx = 4;
 		this.text_layout.gridy = 5;
 		add(blank_panel, this.text_layout);
 
 		this.text_layout.gridx = 4;
-		this.text_layout.gridy = 6;
-		this.text_layout.fill = GridBagConstraints.HORIZONTAL; // Make all
-																// buttons fill
-																// the same
-																// space
+		this.text_layout.gridy = 1;
+		this.text_layout.fill = GridBagConstraints.HORIZONTAL; // Make all buttons fill the same space
 		add(eat_button, this.text_layout);
 		this.text_layout.gridy++;
 		add(drink_button, this.text_layout);
@@ -759,15 +790,14 @@ public class Game extends JFrame
 					
 					//Initializes and creates a new timer panel
 					timer_panel = new JPanel();
-				timer_panel.setBorder(BorderFactory.createMatteBorder(7, 7, 7, 7, Color.BLACK));
+					timer_panel.setBorder(BorderFactory.createMatteBorder(7, 7, 7, 7, Color.BLACK));
 
-
-				timer_text = new JTextArea("Timer: " + Integer.toString(global_data.timer));
+					timer_text = new JTextArea("Timer: " + Integer.toString(global_data.timer));
 					global_data.timer--;
 					text_layout.gridx = 4;
 					text_layout.gridy = 0;
-					text_layout.fill = GridBagConstraints.HORIZONTAL;
-					text_layout.fill = GridBagConstraints.VERTICAL;
+					
+					
 					timer_text.setFont(text_font);
 
 				if (global_data.timer > 30) {
@@ -780,7 +810,7 @@ public class Game extends JFrame
 					timer_text.setBackground(Color.RED);
 					timer_panel.setBackground(Color.RED);
 				}
-
+					text_layout.fill = GridBagConstraints.HORIZONTAL;
 					timer_panel.add(timer_text);
 					add(timer_panel, text_layout);
 					setVisible(true);
@@ -822,34 +852,35 @@ public class Game extends JFrame
 	 */
 	public void nextTurnMethod()
 	{
-
-		// TODO: IMPLEMENT RANDOM NATURAL EVENT OCCURRENCES AND CONTINUE TURN
 		if(p_index == (global_data.player_count - 1)) 			//Check if last player is playing or not
 		{
 			global_data.date++;		//Increment day for other players
 			p_index = 0; 			//Set player back to the first player
+			Random rand = new Random();
+			int randVal = rand.nextInt(100);
+			if (randVal >= 0 && randVal < 8)
+			{
+				randNaturalEventGenerator();
+			}
+			else
+			{
+				setBackgroundApocaImg();
+			}
 		}
+		// change back to apocalapyse background if not changed
 		else
 		{ 
 			p_index++; 				//Increment to the next player
 		}
 		
-		// Random natural event with 8% chance of something happening each turn
-		Random rand = new Random();
-		int randVal = rand.nextInt(100);
-		if (randVal >= 0 && randVal < 8) {
-			randNaturalEventGenerator();
+		if(gameStateCheck())
+		{
+			// Random natural event with 8% chance of something happening each turn;
+			global_data.timer = 60;
+			JOptionPane.showMessageDialog(null, "It is Player " + (p_index + 1) + "'s turn to play \n");
+			statDisplay();
+			callTimerDisplay();
 		}
-		// change back to apocalapyse background if not changed
-		else {
-			setBackgroundApocaImg();
-		}
-
-		global_data.timer = 60;
-		JOptionPane.showMessageDialog(null, "It is Player " + (p_index + 1) + "'s turn to play \n");
-		statDisplay();
-		gameStateCheck();
-		callTimerDisplay();
 	}
 	
 	/*Method that will handle the foraging call
@@ -1342,18 +1373,37 @@ public class Game extends JFrame
 	 */
 	public boolean gameStateCheck()
 	{
+		int death_count;
 		if(global_data.date == global_data.end_date) 			//Check if the end game ended
 		{
 			JOptionPane.showMessageDialog(null, "You have survived the apocalypse!");
+			dispose();
+			System.exit(0);
 			return true;
 		}
 		
-		if(player_data[p_index].health < 5) 		//Player has run out of health
+		//Loops through all the players and checks their health to see if everyone is alive
+		death_count = 0;
+		for(int i = 0; i < global_data.player_count; i++)
 		{
-			JOptionPane.showMessageDialog(null, "You have died");
+			if(player_data[i].health > 5)
+			{
+				break;
+			}
+			else
+			{
+				death_count++;
+			}
+		}
+		if(death_count >= global_data.player_count)
+		{
+			JOptionPane.showMessageDialog(null, "You all have died and failed to survive the apocalypse");
+			dispose();
+			System.exit(1);
 			return false;
 		}
-		else				//Other checks for the player
+		
+		if(player_data[p_index].health > 5)				//Other checks for the player
 		{
 			if(player_data[p_index].health < 50) 		//Below half health
 			{
@@ -1379,7 +1429,14 @@ public class Game extends JFrame
 			{
 				player_data[p_index].health = 100;
 			}
+			
 			return true;
+		}
+		else
+		{
+			JOptionPane.showMessageDialog(null, "Player " + (p_index + 1) + " has died");
+			nextTurnMethod();
+			return false;
 		}
 	}
 	
